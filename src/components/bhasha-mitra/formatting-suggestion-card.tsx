@@ -13,14 +13,14 @@ interface FormattingSuggestionCardProps {
 export function FormattingSuggestionCard({ suggestion, onFix }: FormattingSuggestionCardProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base font-headline">{suggestion.title}</CardTitle>
+      <CardHeader className="p-3 pb-2">
+        <CardTitle className="text-base font-medium">{suggestion.title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+      <CardContent className="p-3 pt-0 pb-2">
+        <p className="text-xs text-muted-foreground">{suggestion.description}</p>
       </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button size="sm" onClick={() => onFix(suggestion.id)} className="bg-primary text-primary-foreground">
+      <CardFooter className="p-3 pt-0 flex justify-end">
+        <Button size="sm" onClick={() => onFix(suggestion.id)} className="h-7">
           <Wand2 className="mr-2" />
           Apply Fix
         </Button>

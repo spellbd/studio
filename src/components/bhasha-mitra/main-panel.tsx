@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { getSuggestionsAction, reportCorrectionAction } from '@/lib/actions';
 import { mockDocumentText } from '@/lib/placeholder-data';
 import type { AnalysisResults } from '@/lib/types';
-import { Header } from './header';
 import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
 import { FormattingSuggestionCard } from './formatting-suggestion-card';
@@ -14,7 +13,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ThumbsUp } from 'lucide-react';
+import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Logo } from '../logo';
 
 type State = {
   status: 'idle' | 'loading' | 'success' | 'error';
@@ -74,14 +76,13 @@ function reducer(state: State, action: Action): State {
 export function MainPanel() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [text, setText] = useState(mockDocumentText);
   const { toast } = useToast();
 
   const handleCheckDocument = async () => {
     dispatch({ type: 'CHECK_START', isOnline: state.isOnline });
     try {
-      // In a real Word Add-in, you'd get the text from the document using Office.js
-      // For this demo, we use mock text.
-      const results = await getSuggestionsAction(mockDocumentText, state.isOnline);
+      const results = await getSuggestionsAction(text, state.isOnline);
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
        if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0) {
         toast({
@@ -111,13 +112,12 @@ export function MainPanel() {
   };
 
   const handleReplace = (original: string, replacement: string) => {
-    // In a real Word Add-in, you'd find and replace the text.
     console.log(`Replacing "${original}" with "${replacement}"`);
+    setText(currentText => currentText.replace(original, replacement));
     toast({
       title: 'Text Replaced',
       description: `"${original}" has been replaced with "${replacement}".`,
     });
-    // Dismiss the card after action
     const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === original);
     if(errorToDismiss) {
         handleIgnoreSpelling(errorToDismiss.id);
@@ -129,7 +129,6 @@ export function MainPanel() {
   };
   
   const handleFixFormatting = (id: string) => {
-    // In a real add-in, apply formatting changes
     console.log(`Applying fix for formatting issue ${id}`);
     toast({
       title: 'Formatting Applied',
@@ -152,15 +151,15 @@ export function MainPanel() {
         }
     }
   };
-  
+
   const renderContent = () => {
     switch (state.status) {
       case 'loading':
         return (
             <div className="p-4 space-y-4">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
             </div>
         );
       case 'success':
@@ -168,15 +167,15 @@ export function MainPanel() {
             return (
                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                     <div className="bg-green-100 dark:bg-green-900/50 rounded-full p-4 mb-4">
-                        <ThumbsUp className="h-12 w-12 text-green-500" />
+                        <ThumbsUp className="h-10 w-10 text-green-500" />
                     </div>
-                    <h3 className="text-xl font-headline font-semibold">All Clear!</h3>
-                    <p className="text-muted-foreground mt-2">We didn't find any suggestions for your document. Great job!</p>
+                    <h3 className="text-lg font-semibold">All Clear!</h3>
+                    <p className="text-muted-foreground mt-1 text-sm">We didn't find any suggestions.</p>
                 </div>
             );
         }
         return (
-          <Tabs defaultValue="spelling" className="w-full p-4">
+          <Tabs defaultValue="spelling" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="spelling" disabled={state.results.spellingErrors.length === 0}>
                 Spelling & Grammar
@@ -187,12 +186,12 @@ export function MainPanel() {
                 {state.results.formattingSuggestions.length > 0 && <Badge variant="secondary" className="ml-2">{state.results.formattingSuggestions.length}</Badge>}
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="spelling" className="mt-4 space-y-4">
+            <TabsContent value="spelling" className="mt-4 space-y-3">
               {state.results.spellingErrors.map(error => (
                 <SuggestionCard key={error.id} error={error} onReplace={handleReplace} onIgnore={handleIgnoreSpelling} onLearn={handleLearn} />
               ))}
             </TabsContent>
-            <TabsContent value="formatting" className="mt-4 space-y-4">
+            <TabsContent value="formatting" className="mt-4 space-y-3">
               {state.results.formattingSuggestions.map(suggestion => (
                 <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixFormatting} />
               ))}
@@ -203,12 +202,11 @@ export function MainPanel() {
         return <div className="p-4 text-destructive text-center">{state.error}</div>;
       case 'idle':
       default:
-        const idleImage = PlaceHolderImages.find(i => i.id === 'feature-illustration-1');
         return (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
-                {idleImage && <Image src={idleImage.imageUrl} alt={idleImage.description} width={200} height={200} data-ai-hint="document check illustration" className="rounded-lg mb-4" />}
-                <h3 className="text-xl font-headline font-semibold mt-4">Ready to improve your writing?</h3>
-                <p className="text-muted-foreground mt-2 max-w-sm">Click "Check Document" to get started with spelling, grammar, and formatting suggestions.</p>
+                <FileText className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold">Ready to improve your writing?</h3>
+                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Paste your text above and click "Check Document" to get started.</p>
             </div>
         );
     }
@@ -216,14 +214,50 @@ export function MainPanel() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <Header
-        onCheckDocument={handleCheckDocument}
-        onShowSettings={() => setSettingsOpen(true)}
-        isChecking={state.status === 'loading'}
-      />
-      <main className="flex-1 overflow-y-auto">
+        <header className="flex items-center justify-between p-3 border-b bg-card">
+            <div className="flex items-center gap-2">
+                <Logo className="h-7 w-7" />
+                <h1 className="text-lg font-semibold text-primary">
+                ভাষা মিত্র
+                </h1>
+            </div>
+            <div className="flex items-center gap-2">
+                <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Settings"
+                >
+                <Settings className="h-5 w-5" />
+                </Button>
+            </div>
+        </header>
+
+        <div className="p-4 border-b">
+            <Textarea 
+                placeholder="Paste your Bangla text here..."
+                className="w-full h-32 resize-none"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+            />
+            <Button
+                onClick={handleCheckDocument}
+                disabled={state.status === 'loading'}
+                className="w-full mt-3"
+            >
+                {state.status === 'loading' ? (
+                    <LoaderCircle className="animate-spin" />
+                ) : (
+                    <ScanText />
+                )}
+                <span>{state.status === 'loading' ? 'Checking...' : 'Check Document'}</span>
+            </Button>
+        </div>
+      
+      <main className="flex-1 overflow-y-auto p-4">
         {renderContent()}
       </main>
+
       <SettingsPanel
         isOpen={isSettingsOpen}
         onOpenChange={setSettingsOpen}

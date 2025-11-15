@@ -12,14 +12,14 @@ interface HeaderProps {
 
 export function Header({ onCheckDocument, onShowSettings, isChecking }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between p-4 border-b bg-card">
-      <div className="flex items-center gap-3">
-        <Logo className="h-8 w-8" />
-        <h1 className="text-xl font-headline font-bold text-primary">
+    <header className="flex items-center justify-between p-3 border-b bg-card">
+      <div className="flex items-center gap-2">
+        <Logo className="h-7 w-7" />
+        <h1 className="text-lg font-semibold text-primary">
           ভাষা মিত্র
         </h1>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <Button
           variant="ghost"
           size="icon"
@@ -31,14 +31,14 @@ export function Header({ onCheckDocument, onShowSettings, isChecking }: HeaderPr
         <Button
           onClick={onCheckDocument}
           disabled={isChecking}
-          className="bg-accent hover:bg-accent/90 text-accent-foreground"
+          size="sm"
         >
           {isChecking ? (
             <LoaderCircle className="animate-spin" />
           ) : (
             <ScanText />
           )}
-          <span>{isChecking ? 'Checking...' : 'Check Document'}</span>
+          <span>{isChecking ? 'Checking' : 'Check'}</span>
         </Button>
       </div>
     </header>
