@@ -1,3 +1,9 @@
+import { MainPanel } from '@/components/bhasha-mitra/main-panel';
+
 export default function Home() {
-  return <></>;
+  return (
+    <div className="w-full min-h-screen">
+      <MainPanel />
+    </div>
+  );
 }
