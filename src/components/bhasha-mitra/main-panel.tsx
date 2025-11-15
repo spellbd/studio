@@ -113,7 +113,7 @@ export function MainPanel() {
     }
 
     // Initialize Office.js and get the document text
-    if (typeof Office !== 'undefined') {
+    if (typeof Office !== 'undefined' && typeof Word !== 'undefined') {
         Office.onReady((info: any) => {
             if (info.host === Office.HostType.Word) {
                 getDocumentText();
@@ -126,6 +126,15 @@ export function MainPanel() {
   }, []);
 
   const getDocumentText = async () => {
+    if (typeof Word === 'undefined') {
+        console.error('Word object is not available.');
+        toast({
+            variant: 'destructive',
+            title: 'Office.js Error',
+            description: 'Could not connect to the Word document.',
+          });
+        return;
+    }
     try {
       await Word.run(async (context: any) => {
         const body = context.document.body;
@@ -210,6 +219,15 @@ export function MainPanel() {
 
 
   const handleReplace = async (original: string, replacement: string) => {
+    if (typeof Word === 'undefined') {
+        console.error('Word object is not available for replacement.');
+        toast({
+          variant: 'destructive',
+          title: 'Office.js Error',
+          description: 'Could not connect to the Word document to perform replacement.',
+        });
+        return;
+    }
     try {
       await Word.run(async (context: any) => {
         const searchResults = context.document.body.search(original, { matchCase: false });
