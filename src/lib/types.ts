@@ -17,8 +17,17 @@ export interface StructuralSuggestion {
   description: string;
 }
 
+export interface ToneSuggestion {
+    id: string;
+    originalWord: string;
+    context: string;
+    suggestedWord: string;
+    explanation: string;
+}
+
 export type AnalysisResults = {
   spellingErrors: SpellingError[];
   formattingSuggestions: FormattingSuggestion[];
   structuralSuggestions: StructuralSuggestion[];
+  toneSuggestions: ToneSuggestion[];
 };

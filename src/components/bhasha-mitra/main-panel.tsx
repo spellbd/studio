@@ -9,8 +9,9 @@ import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
 import { FormattingSuggestionCard } from './formatting-suggestion-card';
 import { StructuralSuggestionCard } from './structural-suggestion-card';
+import { ToneSuggestionCard } from './tone-suggestion-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush, Puzzle } from 'lucide-react';
+import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush, Puzzle, Sparkles } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
@@ -32,7 +33,8 @@ type Action =
   | { type: 'SET_API_KEY'; payload: string | null }
   | { type: 'DISMISS_SPELLING'; payload: string }
   | { type: 'DISMISS_FORMATTING'; payload: string }
-  | { type: 'DISMISS_STRUCTURAL'; payload: string };
+  | { type: 'DISMISS_STRUCTURAL'; payload: string }
+  | { type: 'DISMISS_TONE'; payload: string };
   
 const initialState: State = {
   status: 'idle',
@@ -81,6 +83,15 @@ function reducer(state: State, action: Action): State {
             structuralSuggestions: state.results.structuralSuggestions.filter(s => s.id !== action.payload),
             },
         };
+    case 'DISMISS_TONE':
+      if (!state.results) return state;
+      return {
+        ...state,
+        results: {
+          ...state.results,
+          toneSuggestions: state.results.toneSuggestions.filter(s => s.id !== action.payload),
+        },
+      };
     default:
       return state;
   }
@@ -114,7 +125,7 @@ export function MainPanel() {
     try {
       const results = await getSuggestionsAction(text, state.isOnline, state.geminiApiKey);
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
-       if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0) {
+       if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0) {
         toast({
           title: 'All Clear!',
           description: 'No suggestions found in your document.',
@@ -160,15 +171,21 @@ export function MainPanel() {
       title: 'Text Replaced',
       description: `"${original}" has been replaced with "${replacement}".`,
     });
-    const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === original);
-    if(errorToDismiss) {
-        handleIgnoreSpelling(errorToDismiss.id);
+    // Try to dismiss any card related to this replacement
+    const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original);
+    if(spellingError) {
+        handleIgnoreSpelling(spellingError.id);
+    }
+    const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original);
+    if(toneSuggestion) {
+        handleIgnoreTone(toneSuggestion.id);
     }
   };
 
   const handleIgnoreSpelling = (id: string) => dispatch({ type: 'DISMISS_SPELLING', payload: id });
   const handleIgnoreFormatting = (id: string) => dispatch({ type: 'DISMISS_FORMATTING', payload: id });
   const handleIgnoreStructural = (id: string) => dispatch({ type: 'DISMISS_STRUCTURAL', payload: id });
+  const handleIgnoreTone = (id: string) => dispatch({ type: 'DISMISS_TONE', payload: id });
   
   const handleFixFormatting = (id: string) => {
     console.log(`Applying fix for formatting issue ${id}`);
@@ -214,7 +231,7 @@ export function MainPanel() {
             </div>
         );
       case 'success':
-        if (!state.results || (state.results.spellingErrors.length === 0 && state.results.formattingSuggestions.length === 0 && state.results.structuralSuggestions.length === 0)) {
+        if (!state.results || (state.results.spellingErrors.length === 0 && state.results.formattingSuggestions.length === 0 && state.results.structuralSuggestions.length === 0 && state.results.toneSuggestions.length === 0)) {
             return (
                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                     <div className="bg-green-100 dark:bg-green-900/50 rounded-full p-4 mb-4">
@@ -225,7 +242,6 @@ export function MainPanel() {
                 </div>
             );
         }
-        const hasSuggestions = state.results.spellingErrors.length > 0 || state.results.formattingSuggestions.length > 0 || state.results.structuralSuggestions.length > 0;
         return (
           <div className="space-y-6">
             {state.results.spellingErrors.length > 0 && (
@@ -235,6 +251,17 @@ export function MainPanel() {
                 </h3>
                 {state.results.spellingErrors.map(error => (
                   <SuggestionCard key={error.id} error={error} onReplace={handleReplace} onIgnore={handleIgnoreSpelling} onLearn={handleLearn} />
+                ))}
+              </div>
+            )}
+
+            {state.results.toneSuggestions.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
+                  <Sparkles className="mr-2 h-4 w-4" /> Tone & Word Choice ({state.results.toneSuggestions.length})
+                </h3>
+                {state.results.toneSuggestions.map(suggestion => (
+                  <ToneSuggestionCard key={suggestion.id} suggestion={suggestion} onReplace={handleReplace} onDismiss={handleIgnoreTone} />
                 ))}
               </div>
             )}

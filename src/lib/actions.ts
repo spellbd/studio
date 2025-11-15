@@ -3,9 +3,6 @@
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
 import {
-  mockSpellingErrors,
-  mockFormattingSuggestions,
-  mockStructuralSuggestions,
   mockOfflineSpellingErrors,
   mockOfflineFormattingSuggestions,
   mockOfflineStructuralSuggestions,
@@ -36,6 +33,7 @@ export async function getSuggestionsAction(
         spellingErrors: mockOfflineSpellingErrors,
         formattingSuggestions: mockOfflineFormattingSuggestions,
         structuralSuggestions: mockOfflineStructuralSuggestions,
+        toneSuggestions: [],
       };
     }
   } else {
@@ -44,6 +42,7 @@ export async function getSuggestionsAction(
       spellingErrors: mockOfflineSpellingErrors,
       formattingSuggestions: mockOfflineFormattingSuggestions,
       structuralSuggestions: mockOfflineStructuralSuggestions,
+      toneSuggestions: [],
     };
   }
 }
