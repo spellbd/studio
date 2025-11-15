@@ -8,15 +8,12 @@ import type { AnalysisResults } from '@/lib/types';
 import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
 import { FormattingSuggestionCard } from './formatting-suggestion-card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText } from 'lucide-react';
+import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
+import { Separator } from '../ui/separator';
 
 type State = {
   status: 'idle' | 'loading' | 'success' | 'error';
@@ -175,28 +172,31 @@ export function MainPanel() {
             );
         }
         return (
-          <Tabs defaultValue="spelling" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="spelling" disabled={state.results.spellingErrors.length === 0}>
-                Spelling & Grammar
-                {state.results.spellingErrors.length > 0 && <Badge variant="secondary" className="ml-2">{state.results.spellingErrors.length}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="formatting" disabled={state.results.formattingSuggestions.length === 0}>
-                Formatting
-                {state.results.formattingSuggestions.length > 0 && <Badge variant="secondary" className="ml-2">{state.results.formattingSuggestions.length}</Badge>}
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="spelling" className="mt-4 space-y-3">
-              {state.results.spellingErrors.map(error => (
-                <SuggestionCard key={error.id} error={error} onReplace={handleReplace} onIgnore={handleIgnoreSpelling} onLearn={handleLearn} />
-              ))}
-            </TabsContent>
-            <TabsContent value="formatting" className="mt-4 space-y-3">
-              {state.results.formattingSuggestions.map(suggestion => (
-                <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixFormatting} />
-              ))}
-            </TabsContent>
-          </Tabs>
+          <div className="space-y-4">
+            {state.results.spellingErrors.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="flex items-center text-sm font-semibold text-muted-foreground">
+                  <Type className="mr-2 h-4 w-4" /> Spelling & Grammar ({state.results.spellingErrors.length})
+                </h3>
+                {state.results.spellingErrors.map(error => (
+                  <SuggestionCard key={error.id} error={error} onReplace={handleReplace} onIgnore={handleIgnoreSpelling} onLearn={handleLearn} />
+                ))}
+              </div>
+            )}
+            {state.results.spellingErrors.length > 0 && state.results.formattingSuggestions.length > 0 && (
+              <Separator />
+            )}
+            {state.results.formattingSuggestions.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="flex items-center text-sm font-semibold text-muted-foreground">
+                  <Paintbrush className="mr-2 h-4 w-4" /> Formatting ({state.results.formattingSuggestions.length})
+                </h3>
+                {state.results.formattingSuggestions.map(suggestion => (
+                  <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixFormatting} />
+                ))}
+              </div>
+            )}
+          </div>
         );
       case 'error':
         return <div className="p-4 text-destructive text-center">{state.error}</div>;
@@ -206,7 +206,7 @@ export function MainPanel() {
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <FileText className="w-16 h-16 text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold">Ready to improve your writing?</h3>
-                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Paste your text above and click "Check Document" to get started.</p>
+                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Click "Check Document" to get started.</p>
             </div>
         );
     }
