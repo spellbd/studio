@@ -126,13 +126,9 @@ export function MainPanel() {
   }, []);
 
   const getDocumentText = async () => {
-    if (typeof Word === 'undefined') {
-        console.error('Word object is not available.');
-        toast({
-            variant: 'destructive',
-            title: 'Office.js Error',
-            description: 'Could not connect to the Word document.',
-          });
+    if (typeof Word === 'undefined' || typeof Office === 'undefined') {
+        console.warn('Office.js is not available. Using fallback text.');
+        setText("আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।");
         return;
     }
     try {
@@ -220,12 +216,24 @@ export function MainPanel() {
 
   const handleReplace = async (original: string, replacement: string) => {
     if (typeof Word === 'undefined') {
-        console.error('Word object is not available for replacement.');
+        console.error('Word object is not available for replacement. Simulating replacement.');
+        // In web mode, just update the local state for demonstration
+        const newText = text.replace(new RegExp(original, 'g'), replacement);
+        setText(newText);
         toast({
-          variant: 'destructive',
-          title: 'Office.js Error',
-          description: 'Could not connect to the Word document to perform replacement.',
+          title: 'Text Replaced (Simulated)',
+          description: `"${original}" has been replaced with "${replacement}".`,
         });
+
+        // Try to dismiss any card related to this replacement
+        const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original);
+        if(spellingError) {
+            handleIgnoreSpelling(spellingError.id);
+        }
+        const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original);
+        if(toneSuggestion) {
+            handleIgnoreTone(toneSuggestion.id);
+        }
         return;
     }
     try {
@@ -235,7 +243,7 @@ export function MainPanel() {
         await context.sync();
         
         if (searchResults.items.length > 0) {
-          // Replace all occurrences, but we'll just handle the first for now for simplicity
+          // Replace all occurrences
           searchResults.items.forEach(item => item.insertText(replacement, 'Replace'));
           await context.sync();
         }
@@ -446,3 +454,5 @@ export function MainPanel() {
     </div>
   );
 }
+
+    
