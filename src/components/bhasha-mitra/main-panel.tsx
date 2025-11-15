@@ -3,7 +3,6 @@
 import { useReducer, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getSuggestionsAction, reportCorrectionAction } from '@/lib/actions';
-import { mockDocumentText } from '@/lib/placeholder-data';
 import type { AnalysisResults } from '@/lib/types';
 import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
@@ -15,7 +14,11 @@ import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush,
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
-import { Separator } from '../ui/separator';
+
+// Define the Office global object to avoid TypeScript errors.
+// This is provided by the Office Add-in environment at runtime.
+declare const Office: any;
+declare const Word: any;
 
 type State = {
   status: 'idle' | 'loading' | 'success' | 'error';
@@ -100,7 +103,7 @@ function reducer(state: State, action: Action): State {
 export function MainPanel() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [text, setText] = useState(mockDocumentText);
+  const [text, setText] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -108,9 +111,51 @@ export function MainPanel() {
     if (savedKey) {
       dispatch({ type: 'SET_API_KEY', payload: savedKey });
     }
+
+    // Initialize Office.js and get the document text
+    if (typeof Office !== 'undefined') {
+        Office.onReady((info: any) => {
+            if (info.host === Office.HostType.Word) {
+                getDocumentText();
+            }
+        });
+    } else {
+        console.warn("Office.js is not loaded. Running in web mode with mock data.");
+        setText("আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।"); // Fallback for web
+    }
   }, []);
 
+  const getDocumentText = async () => {
+    try {
+      await Word.run(async (context: any) => {
+        const body = context.document.body;
+        context.load(body, 'text');
+        await context.sync();
+        setText(body.text);
+      });
+    } catch (error) {
+      console.error('Error getting document text:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not read text from the document.',
+      });
+    }
+  };
+
+
   const handleCheckDocument = async () => {
+    await getDocumentText(); // Refresh text before checking
+
+    if (!text.trim()) {
+        toast({
+            variant: 'destructive',
+            title: 'Empty Document',
+            description: 'There is no text in the document to check.',
+        });
+        return;
+    }
+
     if (state.isOnline && !state.geminiApiKey) {
         toast({
             variant: 'destructive',
@@ -164,21 +209,43 @@ export function MainPanel() {
   };
 
 
-  const handleReplace = (original: string, replacement: string) => {
-    console.log(`Replacing "${original}" with "${replacement}"`);
-    setText(currentText => currentText.replace(new RegExp(original, 'g'), replacement));
-    toast({
-      title: 'Text Replaced',
-      description: `"${original}" has been replaced with "${replacement}".`,
-    });
-    // Try to dismiss any card related to this replacement
-    const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original);
-    if(spellingError) {
-        handleIgnoreSpelling(spellingError.id);
-    }
-    const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original);
-    if(toneSuggestion) {
-        handleIgnoreTone(toneSuggestion.id);
+  const handleReplace = async (original: string, replacement: string) => {
+    try {
+      await Word.run(async (context: any) => {
+        const searchResults = context.document.body.search(original, { matchCase: false });
+        context.load(searchResults, 'items');
+        await context.sync();
+        
+        if (searchResults.items.length > 0) {
+          // Replace all occurrences, but we'll just handle the first for now for simplicity
+          searchResults.items.forEach(item => item.insertText(replacement, 'Replace'));
+          await context.sync();
+        }
+      });
+      
+      toast({
+        title: 'Text Replaced',
+        description: `"${original}" has been replaced with "${replacement}".`,
+      });
+      await getDocumentText(); // Refresh the text area after replacement
+      
+      // Try to dismiss any card related to this replacement
+      const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original);
+      if(spellingError) {
+          handleIgnoreSpelling(spellingError.id);
+      }
+      const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original);
+      if(toneSuggestion) {
+          handleIgnoreTone(toneSuggestion.id);
+      }
+
+    } catch (error) {
+      console.error('Error replacing text:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Replacement Failed',
+        description: 'Could not replace the text in the document.',
+      });
     }
   };
 
@@ -191,7 +258,7 @@ export function MainPanel() {
     console.log(`Applying fix for formatting issue ${id}`);
     toast({
       title: 'Formatting Applied',
-      description: 'The suggested formatting change has been applied.',
+      description: 'The suggested formatting change has been applied. (Not implemented)',
     });
     handleIgnoreFormatting(id);
   };
@@ -200,7 +267,7 @@ export function MainPanel() {
     console.log(`Applying fix for structural issue ${id}`);
     toast({
       title: 'Structural Change Applied',
-      description: 'The suggested structural change has been applied.',
+      description: 'The suggested structural change has been applied. (Not implemented)',
     });
     handleIgnoreStructural(id);
   };
@@ -297,7 +364,7 @@ export function MainPanel() {
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <FileText className="w-16 h-16 text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold font-headline">Ready to improve your writing?</h3>
-                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Paste your text above and click "Check Document" to get started.</p>
+                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Click "Check Document" to get started.</p>
             </div>
         );
     }
@@ -326,10 +393,10 @@ export function MainPanel() {
 
         <div className="p-4 border-b">
             <Textarea 
-                placeholder="আপনার বাংলা লেখা এখানে পেস্ট করুন..."
-                className="w-full h-32 resize-none text-base"
+                placeholder="The content of your Word document will appear here..."
+                className="w-full h-32 resize-none text-base bg-muted/40"
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                readOnly // Make the textarea read-only as it reflects the doc content
             />
             <Button
                 onClick={handleCheckDocument}
