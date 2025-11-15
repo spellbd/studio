@@ -12,8 +12,8 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
       <rect width="100" height="100" rx="20" fill="hsl(var(--primary))" />
       <text
         x="50%"
-        y="50%"
-        dominantBaseline="central"
+        y="55%"
+        dominantBaseline="middle"
         textAnchor="middle"
         fontSize="60"
         fontWeight="bold"

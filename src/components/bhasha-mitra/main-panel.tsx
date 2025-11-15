@@ -1,6 +1,6 @@
 'use client';
 
-import { useReducer, useState } from 'react';
+import { useReducer, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getSuggestionsAction, reportCorrectionAction } from '@/lib/actions';
 import { mockDocumentText } from '@/lib/placeholder-data';
@@ -8,8 +8,9 @@ import type { AnalysisResults } from '@/lib/types';
 import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
 import { FormattingSuggestionCard } from './formatting-suggestion-card';
+import { StructuralSuggestionCard } from './structural-suggestion-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush } from 'lucide-react';
+import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush, Puzzle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
@@ -20,6 +21,7 @@ type State = {
   results: AnalysisResults | null;
   error: string | null;
   isOnline: boolean;
+  geminiApiKey: string | null;
 };
 
 type Action =
@@ -27,14 +29,17 @@ type Action =
   | { type: 'CHECK_SUCCESS'; payload: AnalysisResults }
   | { type: 'CHECK_ERROR'; payload: string }
   | { type: 'SET_ONLINE'; payload: boolean }
+  | { type: 'SET_API_KEY'; payload: string | null }
   | { type: 'DISMISS_SPELLING'; payload: string }
-  | { type: 'DISMISS_FORMATTING'; payload: string };
-
+  | { type: 'DISMISS_FORMATTING'; payload: string }
+  | { type: 'DISMISS_STRUCTURAL'; payload: string };
+  
 const initialState: State = {
   status: 'idle',
   results: null,
   error: null,
   isOnline: true,
+  geminiApiKey: null,
 };
 
 function reducer(state: State, action: Action): State {
@@ -47,6 +52,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, status: 'error', error: action.payload };
     case 'SET_ONLINE':
       return { ...state, isOnline: action.payload };
+    case 'SET_API_KEY':
+        return { ...state, geminiApiKey: action.payload };
     case 'DISMISS_SPELLING':
       if (!state.results) return state;
       return {
@@ -65,6 +72,15 @@ function reducer(state: State, action: Action): State {
           formattingSuggestions: state.results.formattingSuggestions.filter(s => s.id !== action.payload),
         },
       };
+    case 'DISMISS_STRUCTURAL':
+        if (!state.results) return state;
+        return {
+            ...state,
+            results: {
+            ...state.results,
+            structuralSuggestions: state.results.structuralSuggestions.filter(s => s.id !== action.payload),
+            },
+        };
     default:
       return state;
   }
@@ -76,12 +92,29 @@ export function MainPanel() {
   const [text, setText] = useState(mockDocumentText);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const savedKey = localStorage.getItem('geminiApiKey');
+    if (savedKey) {
+      dispatch({ type: 'SET_API_KEY', payload: savedKey });
+    }
+  }, []);
+
   const handleCheckDocument = async () => {
+    if (state.isOnline && !state.geminiApiKey) {
+        toast({
+            variant: 'destructive',
+            title: 'API Key Required',
+            description: 'Please add your Gemini API key in the settings.',
+        });
+        setSettingsOpen(true);
+        return;
+    }
+
     dispatch({ type: 'CHECK_START', isOnline: state.isOnline });
     try {
-      const results = await getSuggestionsAction(text, state.isOnline);
+      const results = await getSuggestionsAction(text, state.isOnline, state.geminiApiKey);
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
-       if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0) {
+       if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0) {
         toast({
           title: 'All Clear!',
           description: 'No suggestions found in your document.',
@@ -108,9 +141,21 @@ export function MainPanel() {
     });
   };
 
+  const handleApiKeyChange = (apiKey: string | null) => {
+    dispatch({ type: 'SET_API_KEY', payload: apiKey });
+    if (apiKey) {
+      localStorage.setItem('geminiApiKey', apiKey);
+      toast({ title: 'API Key Saved', description: 'Your Gemini API key has been securely stored.' });
+    } else {
+      localStorage.removeItem('geminiApiKey');
+      toast({ title: 'API Key Removed', variant: 'destructive' });
+    }
+  };
+
+
   const handleReplace = (original: string, replacement: string) => {
     console.log(`Replacing "${original}" with "${replacement}"`);
-    setText(currentText => currentText.replace(original, replacement));
+    setText(currentText => currentText.replace(new RegExp(original, 'g'), replacement));
     toast({
       title: 'Text Replaced',
       description: `"${original}" has been replaced with "${replacement}".`,
@@ -121,9 +166,9 @@ export function MainPanel() {
     }
   };
 
-  const handleIgnoreSpelling = (id: string) => {
-    dispatch({ type: 'DISMISS_SPELLING', payload: id });
-  };
+  const handleIgnoreSpelling = (id: string) => dispatch({ type: 'DISMISS_SPELLING', payload: id });
+  const handleIgnoreFormatting = (id: string) => dispatch({ type: 'DISMISS_FORMATTING', payload: id });
+  const handleIgnoreStructural = (id: string) => dispatch({ type: 'DISMISS_STRUCTURAL', payload: id });
   
   const handleFixFormatting = (id: string) => {
     console.log(`Applying fix for formatting issue ${id}`);
@@ -131,7 +176,16 @@ export function MainPanel() {
       title: 'Formatting Applied',
       description: 'The suggested formatting change has been applied.',
     });
-    dispatch({ type: 'DISMISS_FORMATTING', payload: id });
+    handleIgnoreFormatting(id);
+  };
+
+  const handleFixStructural = (id: string) => {
+    console.log(`Applying fix for structural issue ${id}`);
+    toast({
+      title: 'Structural Change Applied',
+      description: 'The suggested structural change has been applied.',
+    });
+    handleIgnoreStructural(id);
   };
   
   const handleLearn = async (originalWord: string, correctedWord: string) => {
@@ -160,7 +214,7 @@ export function MainPanel() {
             </div>
         );
       case 'success':
-        if (!state.results || (state.results.spellingErrors.length === 0 && state.results.formattingSuggestions.length === 0)) {
+        if (!state.results || (state.results.spellingErrors.length === 0 && state.results.formattingSuggestions.length === 0 && state.results.structuralSuggestions.length === 0)) {
             return (
                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                     <div className="bg-green-100 dark:bg-green-900/50 rounded-full p-4 mb-4">
@@ -171,11 +225,12 @@ export function MainPanel() {
                 </div>
             );
         }
+        const hasSuggestions = state.results.spellingErrors.length > 0 || state.results.formattingSuggestions.length > 0 || state.results.structuralSuggestions.length > 0;
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {state.results.spellingErrors.length > 0 && (
               <div className="space-y-3">
-                <h3 className="flex items-center text-sm font-semibold text-muted-foreground">
+                <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
                   <Type className="mr-2 h-4 w-4" /> Spelling & Grammar ({state.results.spellingErrors.length})
                 </h3>
                 {state.results.spellingErrors.map(error => (
@@ -183,16 +238,25 @@ export function MainPanel() {
                 ))}
               </div>
             )}
-            {state.results.spellingErrors.length > 0 && state.results.formattingSuggestions.length > 0 && (
-              <Separator />
+            
+            {state.results.structuralSuggestions.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
+                  <Puzzle className="mr-2 h-4 w-4" /> Structural ({state.results.structuralSuggestions.length})
+                </h3>
+                {state.results.structuralSuggestions.map(suggestion => (
+                  <StructuralSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixStructural} onDismiss={handleIgnoreStructural} />
+                ))}
+              </div>
             )}
+
             {state.results.formattingSuggestions.length > 0 && (
               <div className="space-y-3">
-                <h3 className="flex items-center text-sm font-semibold text-muted-foreground">
+                <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
                   <Paintbrush className="mr-2 h-4 w-4" /> Formatting ({state.results.formattingSuggestions.length})
                 </h3>
                 {state.results.formattingSuggestions.map(suggestion => (
-                  <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixFormatting} />
+                  <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixFormatting} onDismiss={handleIgnoreFormatting} />
                 ))}
               </div>
             )}
@@ -205,19 +269,19 @@ export function MainPanel() {
         return (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <FileText className="w-16 h-16 text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold">Ready to improve your writing?</h3>
-                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Click "Check Document" to get started.</p>
+                <h3 className="text-lg font-semibold font-headline">Ready to improve your writing?</h3>
+                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Paste your text above and click "Check Document" to get started.</p>
             </div>
         );
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-        <header className="flex items-center justify-between p-3 border-b bg-card">
-            <div className="flex items-center gap-2">
-                <Logo className="h-7 w-7" />
-                <h1 className="text-lg font-semibold text-primary">
+    <div className="flex flex-col h-screen bg-background text-foreground">
+        <header className="flex items-center justify-between p-3 border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+            <div className="flex items-center gap-3">
+                <Logo className="h-8 w-8" />
+                <h1 className="text-xl font-bold text-primary font-headline">
                 ভাষা মিত্র
                 </h1>
             </div>
@@ -235,15 +299,16 @@ export function MainPanel() {
 
         <div className="p-4 border-b">
             <Textarea 
-                placeholder="Paste your Bangla text here..."
-                className="w-full h-32 resize-none"
+                placeholder="আপনার বাংলা লেখা এখানে পেস্ট করুন..."
+                className="w-full h-32 resize-none text-base"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
             />
             <Button
                 onClick={handleCheckDocument}
                 disabled={state.status === 'loading'}
-                className="w-full mt-3"
+                className="w-full mt-3 font-semibold"
+                size="lg"
             >
                 {state.status === 'loading' ? (
                     <LoaderCircle className="animate-spin" />
@@ -263,6 +328,8 @@ export function MainPanel() {
         onOpenChange={setSettingsOpen}
         isOnline={state.isOnline}
         onOnlineChange={handleOnlineChange}
+        apiKey={state.geminiApiKey}
+        onApiKeyChange={handleApiKeyChange}
       />
     </div>
   );

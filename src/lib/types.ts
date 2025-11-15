@@ -11,7 +11,14 @@ export interface FormattingSuggestion {
   description: string;
 }
 
+export interface StructuralSuggestion {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export type AnalysisResults = {
   spellingErrors: SpellingError[];
   formattingSuggestions: FormattingSuggestion[];
+  structuralSuggestions: StructuralSuggestion[];
 };

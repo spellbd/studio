@@ -1,17 +1,17 @@
 'use client';
 
-import type { FormattingSuggestion } from '@/lib/types';
+import type { StructuralSuggestion } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Wand2 } from 'lucide-react';
 
-interface FormattingSuggestionCardProps {
-  suggestion: FormattingSuggestion;
+interface StructuralSuggestionCardProps {
+  suggestion: StructuralSuggestion;
   onFix: (id: string) => void;
   onDismiss: (id: string) => void;
 }
 
-export function FormattingSuggestionCard({ suggestion, onFix, onDismiss }: FormattingSuggestionCardProps) {
+export function StructuralSuggestionCard({ suggestion, onFix, onDismiss }: StructuralSuggestionCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
