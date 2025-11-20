@@ -125,35 +125,35 @@ export function MainPanel() {
       dispatch({ type: 'SET_API_KEY', payload: savedKey });
     }
 
-    // Initialize Office.js and get the document text
-    if (typeof Office !== 'undefined' && typeof Word !== 'undefined') {
-        Office.onReady((info: any) => {
-            if (info.host === Office.HostType.Word) {
-                getDocumentText();
-            }
-        });
-    } else {
-        console.warn("Office.js is not loaded. Running in web mode with mock data.");
-        setText(fallbackText); // Fallback for web
-    }
+    const initializeOffice = () => {
+        if (typeof Office !== 'undefined' && typeof Word !== 'undefined') {
+            Office.onReady((info: any) => {
+                if (info.host === Office.HostType.Word) {
+                    getDocumentText();
+                }
+            });
+        } else {
+            console.warn("Office.js is not loaded. Running in web mode with mock data.");
+            setText(fallbackText);
+        }
+    };
+    
+    initializeOffice();
   }, []);
 
-  const getDocumentText = async (): Promise<string> => {
+  const getDocumentText = async () => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
         console.warn('Office.js is not available. Using fallback text.');
         setText(fallbackText);
-        return fallbackText;
+        return;
     }
     try {
-      let docText = "";
       await Word.run(async (context: any) => {
         const body = context.document.body;
         context.load(body, 'text');
         await context.sync();
-        docText = body.text;
-        setText(docText);
+        setText(body.text);
       });
-      return docText;
     } catch (error) {
       console.error('Error getting document text:', error);
       toast({
@@ -161,13 +161,12 @@ export function MainPanel() {
         title: 'ত্রুটি',
         description: 'ডকুমেন্ট থেকে টেক্সট পড়া যায়নি।',
       });
-      return "";
     }
   };
 
 
   const handleCheckDocument = async () => {
-    const currentText = await getDocumentText();
+    const currentText = text;
 
     if (!currentText.trim()) {
         toast({
