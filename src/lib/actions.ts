@@ -23,6 +23,18 @@ export async function getSuggestionsAction(
     }
     try {
       const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey });
+      
+      // If the API returns empty results, fallback to mock data to ensure user sees something.
+      if (!results || (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0)) {
+        console.log('Online mode returned no suggestions, falling back to offline mock data.');
+        return {
+          spellingErrors: [],
+          formattingSuggestions: mockFormattingSuggestions,
+          structuralSuggestions: mockStructuralSuggestions,
+          toneSuggestions: [],
+        };
+      }
+
       return results;
 
     } catch (error) {
