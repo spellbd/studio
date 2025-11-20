@@ -8,12 +8,12 @@ import { Lightbulb, Check, X } from 'lucide-react';
 
 interface SuggestionCardProps {
   error: SpellingError;
-  onReplace: (original: string, replacement: string) => void;
+  onCorrect: (error: SpellingError, replacement: string) => void;
   onIgnore: (id: string) => void;
   onLearn: (word: string) => void;
 }
 
-export function SuggestionCard({ error, onReplace, onIgnore, onLearn }: SuggestionCardProps) {
+export function SuggestionCard({ error, onCorrect, onIgnore, onLearn }: SuggestionCardProps) {
   const contextParts = error.context.split(error.originalWord);
   
   return (
@@ -38,7 +38,7 @@ export function SuggestionCard({ error, onReplace, onIgnore, onLearn }: Suggesti
               key={index}
               variant="outline"
               className="cursor-pointer hover:bg-accent hover:text-accent-foreground text-base py-1 px-3"
-              onClick={() => onReplace(error.originalWord, suggestion)}
+              onClick={() => onCorrect(error, suggestion)}
             >
               <Check className="h-4 w-4 mr-2" />
               {suggestion}
