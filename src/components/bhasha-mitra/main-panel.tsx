@@ -125,19 +125,23 @@ export function MainPanel() {
     }
   }, []);
 
-  const getDocumentText = async () => {
+  const getDocumentText = async (): Promise<string> => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
         console.warn('Office.js is not available. Using fallback text.');
-        setText("আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।");
-        return;
+        const fallbackText = "আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।";
+        setText(fallbackText);
+        return fallbackText;
     }
     try {
+      let docText = "";
       await Word.run(async (context: any) => {
         const body = context.document.body;
         context.load(body, 'text');
         await context.sync();
-        setText(body.text);
+        docText = body.text;
+        setText(docText);
       });
+      return docText;
     } catch (error) {
       console.error('Error getting document text:', error);
       toast({
@@ -145,14 +149,15 @@ export function MainPanel() {
         title: 'Error',
         description: 'Could not read text from the document.',
       });
+      return "";
     }
   };
 
 
   const handleCheckDocument = async () => {
-    await getDocumentText(); // Refresh text before checking
+    const currentText = await getDocumentText(); // Refresh text and get the latest version
 
-    if (!text.trim()) {
+    if (!currentText.trim()) {
         toast({
             variant: 'destructive',
             title: 'Empty Document',
@@ -173,7 +178,7 @@ export function MainPanel() {
 
     dispatch({ type: 'CHECK_START', isOnline: state.isOnline });
     try {
-      const results = await getSuggestionsAction(text, state.isOnline, state.geminiApiKey);
+      const results = await getSuggestionsAction(currentText, state.isOnline, state.geminiApiKey);
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
        if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0) {
         toast({
@@ -454,5 +459,3 @@ export function MainPanel() {
     </div>
   );
 }
-
-    
