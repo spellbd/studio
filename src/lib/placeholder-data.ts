@@ -34,7 +34,7 @@ export const mockFormattingSuggestions: FormattingSuggestion[] = [
     {
       id: 'fmt-1',
       title: 'অতিরিক্ত ফাঁকা লাইন',
-      description: '"নয়।" এবং "অতএব" এর মধ্যে একটি অতিরিক্ত ফাঁকা লাইন রয়েছে যা हटाया যেতে পারে।',
+      description: '"নয়।" এবং "অতএব" এর মধ্যে একটি অতিরিক্ত ফাঁকা লাইন রয়েছে যা সরানো যেতে পারে।',
       originalText: 'নয়।\n\nঅতএব',
       replacementText: 'নয়।\nঅতএব',
     },
@@ -43,10 +43,17 @@ export const mockFormattingSuggestions: FormattingSuggestion[] = [
 export const mockStructuralSuggestions: StructuralSuggestion[] = [
     {
       id: 'struct-1',
+      title: 'অনুপস্থিত "বিষয়"',
+      description: 'আবেদনপত্রটিতে একটি "বিষয়" উল্লেখ করা প্রয়োজন, যা প্রাপককে চিঠির উদ্দেশ্য সম্পর্কে দ্রুত ধারণা দেবে।',
+      originalText: 'ঢাকা\n\nমহোদয়',
+      replacementText: 'ঢাকা\n\nবিষয়: ছাড়পত্রের জন্য আবেদন।\n\nমহোদয়',
+    },
+    {
+      id: 'struct-2',
       title: 'বাক্য গঠন',
-      description: '"অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।" বাক্যটি আরও সহজভাবে লেখা যেতে পারে।',
+      description: '"অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।" বাক্যটি আরও আনুষ্ঠানিক এবং সহজভাবে লেখা যেতে পারে।',
       originalText: 'অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।',
-      replacementText: 'অতএব, আমাকে ছাড়পত্র প্রদান করলে আমি আপনার প্রতি কৃতজ্ঞ থাকব।',
+      replacementText: 'অতএব, মহোদয়ের নিকট আবেদন, আমাকে ছাড়পত্র প্রদান করে বাধিত করবেন।',
     },
 ];
 
