@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import { Trash2 } from 'lucide-react';
 
 interface DictionaryManagementDialogProps {
@@ -25,11 +27,16 @@ export function DictionaryManagementDialog({
   dictionary,
   onDictionaryUpdate,
 }: DictionaryManagementDialogProps) {
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleRemoveWord = (wordToRemove: string) => {
     const newDictionary = dictionary.filter((word) => word !== wordToRemove);
     onDictionaryUpdate(newDictionary);
   };
+
+  const filteredDictionary = dictionary.filter((word) =>
+    word.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -37,14 +44,19 @@ export function DictionaryManagementDialog({
         <DialogHeader>
           <DialogTitle>অভিধান পরিচালনা করুন</DialogTitle>
           <DialogDescription>
-            এখানে আপনার ব্যক্তিগত অভিধানে থাকা শব্দগুলো দেখানো হচ্ছে। আপনি যেকোনো শব্দ মুছে ফেলতে পারেন।
+            এখানে আপনার ব্যক্তিগত অভিধানে থাকা শব্দগুলো দেখানো হচ্ছে। আপনি যেকোনো শব্দ অনুসন্ধান বা মুছে ফেলতে পারেন।
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <ScrollArea className="h-72 w-full rounded-md border">
+        <div className="py-4 space-y-4">
+          <Input
+            placeholder="অভিধানে অনুসন্ধান করুন..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <ScrollArea className="h-60 w-full rounded-md border">
             <div className="p-4">
-              {dictionary.length > 0 ? (
-                dictionary.map((word, index) => (
+              {filteredDictionary.length > 0 ? (
+                filteredDictionary.map((word, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between py-2 border-b last:border-b-0"
@@ -62,7 +74,7 @@ export function DictionaryManagementDialog({
                 ))
               ) : (
                 <p className="text-center text-sm text-muted-foreground py-10">
-                  আপনার অভিধান খালি।
+                  {dictionary.length === 0 ? 'আপনার অভিধান খালি।' : 'কোনো শব্দ পাওয়া যায়নি।'}
                 </p>
               )}
             </div>

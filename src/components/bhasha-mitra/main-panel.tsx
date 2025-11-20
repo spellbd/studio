@@ -341,19 +341,25 @@ export function MainPanel() {
     const newDictionary = [...new Set([...state.dictionary, word])];
     localStorage.setItem('localDictionary', JSON.stringify(newDictionary));
     dispatch({ type: 'SET_DICTIONARY', payload: newDictionary });
-
-    const { success, message } = await reportCorrectionAction(word, word);
+  
+    // Dismiss the suggestion card for the learned word immediately
+    const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === word);
+    if (errorToDismiss) {
+      handleIgnoreSpelling(errorToDismiss.id);
+    }
+  
+    // Show toast after UI update
     toast({
-      title: success ? 'শব্দটি অভিধানে যোগ করা হয়েছে' : 'আপডেট ব্যর্থ হয়েছে',
-      description: message,
-      variant: success ? 'default' : 'destructive',
+      title: 'শব্দটি অভিধানে যোগ করা হয়েছে',
+      description: `"${word}" শব্দটি আপনার ব্যক্তিগত অভিধানে যোগ করা হয়েছে।`,
     });
-
-    if (success) {
-        const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === word);
-        if (errorToDismiss) {
-            handleIgnoreSpelling(errorToDismiss.id);
-        }
+  
+    // Asynchronously report the correction to the backend
+    try {
+      await reportCorrectionAction(word, word);
+    } catch (error) {
+      console.error('Failed to report correction to backend:', error);
+      // Optional: Show a different toast if backend update fails, but the primary action for the user is done.
     }
   };
 
