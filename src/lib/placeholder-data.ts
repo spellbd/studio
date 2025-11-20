@@ -42,14 +42,21 @@ export const mockFormattingSuggestions: FormattingSuggestion[] = [
 
 export const mockStructuralSuggestions: StructuralSuggestion[] = [
     {
-      id: 'struct-1',
+      id: 'struct-date',
+      title: 'অনুপস্থিত "তারিখ"',
+      description: 'আবেদনপত্রের শুরুতে একটি তারিখ উল্লেখ করা আবশ্যক। সাধারণত এটি প্রাপকের ঠিকানার আগে বা পরে লেখা হয়।',
+      originalText: 'প্রধান শিক্ষক',
+      replacementText: 'তারিখ: ২০ জুন, ২০২৪\n\nপ্রধান শিক্ষক',
+    },
+    {
+      id: 'struct-subject',
       title: 'অনুপস্থিত "বিষয়"',
       description: 'আবেদনপত্রটিতে একটি "বিষয়" উল্লেখ করা প্রয়োজন, যা প্রাপককে চিঠির উদ্দেশ্য সম্পর্কে দ্রুত ধারণা দেবে।',
       originalText: 'ঢাকা\n\nমহোদয়',
       replacementText: 'ঢাকা\n\nবিষয়: ছাড়পত্রের জন্য আবেদন।\n\nমহোদয়',
     },
     {
-      id: 'struct-2',
+      id: 'struct-sentence',
       title: 'বাক্য গঠন',
       description: '"অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।" বাক্যটি আরও আনুষ্ঠানিক এবং সহজভাবে লেখা যেতে পারে।',
       originalText: 'অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।',
