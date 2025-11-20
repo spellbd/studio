@@ -19,7 +19,7 @@ export async function getSuggestionsAction(
 
   if (isOnline) {
     if (!apiKey) {
-      throw new Error("Gemini API key is not provided.");
+      throw new Error("Gemini API কী প্রদান করা হয়নি।");
     }
     try {
       const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey });
@@ -53,9 +53,9 @@ export async function reportCorrectionAction(
   try {
     await improveOfflineNgramModel({ originalWord, correctedWord });
     console.log(`Reported correction: ${originalWord} -> ${correctedWord}`);
-    return { success: true, message: 'Thank you! The learning model has been updated.' };
+    return { success: true, message: 'ধন্যবাদ! লার্নিং মডেলটি আপডেট করা হয়েছে।' };
   } catch (error) {
     console.error('Failed to report correction:', error);
-    return { success: false, message: 'Failed to update the learning model.' };
+    return { success: false, message: 'লার্নিং মডেল আপডেট করতে ব্যর্থ হয়েছে।' };
   }
 }

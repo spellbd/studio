@@ -17,7 +17,7 @@ export function StructuralSuggestionCard({ suggestion, onFix, onDismiss }: Struc
       <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
         <CardTitle className="text-base font-medium">{suggestion.title}</CardTitle>
         <Button variant="ghost" size="sm" onClick={() => onDismiss(suggestion.id)} className="h-7 px-2 -mr-2 -mt-1">
-            Ignore
+            উপেক্ষা করুন
         </Button>
       </CardHeader>
       <CardContent className="p-3 pt-0 pb-2">
@@ -26,7 +26,7 @@ export function StructuralSuggestionCard({ suggestion, onFix, onDismiss }: Struc
       <CardFooter className="p-3 pt-0 flex justify-end">
         <Button size="sm" onClick={() => onFix(suggestion.id)} className="h-8">
           <Wand2 className="mr-2 h-4 w-4" />
-          Apply Fix
+          ঠিক করুন
         </Button>
       </CardFooter>
     </Card>

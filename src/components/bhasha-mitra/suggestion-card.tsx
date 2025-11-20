@@ -25,7 +25,7 @@ export function SuggestionCard({ error, onReplace, onIgnore, onLearn }: Suggesti
           </span>
         </CardTitle>
         <Button variant="ghost" size="sm" onClick={() => onIgnore(error.id)} className="h-7 px-2 -mr-2 -mt-1">
-          <X className="h-4 w-4 mr-1" /> Ignore
+          <X className="h-4 w-4 mr-1" /> উপেক্ষা করুন
         </Button>
       </CardHeader>
       <CardContent className="p-3 pt-0 pb-2">
@@ -45,13 +45,13 @@ export function SuggestionCard({ error, onReplace, onIgnore, onLearn }: Suggesti
             </Badge>
           ))}
           {error.suggestions.length === 0 && (
-            <p className="text-sm text-muted-foreground">No suggestions found.</p>
+            <p className="text-sm text-muted-foreground">কোনো পরামর্শ পাওয়া যায়নি।</p>
           )}
         </div>
       </CardContent>
        <CardFooter className="p-3 pt-2 flex justify-end">
          <Button variant="link" size="sm" onClick={() => onLearn(error.originalWord, error.originalWord)} className="text-sm">
-           <Lightbulb className="h-4 w-4 mr-1" /> Add to Dictionary
+           <Lightbulb className="h-4 w-4 mr-1" /> অভিধানে যোগ করুন
          </Button>
       </CardFooter>
     </Card>

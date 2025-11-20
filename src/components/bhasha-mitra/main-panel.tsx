@@ -146,8 +146,8 @@ export function MainPanel() {
       console.error('Error getting document text:', error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Could not read text from the document.',
+        title: 'ত্রুটি',
+        description: 'ডকুমেন্ট থেকে টেক্সট পড়া যায়নি।',
       });
       return "";
     }
@@ -155,13 +155,13 @@ export function MainPanel() {
 
 
   const handleCheckDocument = async () => {
-    const currentText = await getDocumentText(); // Refresh text and get the latest version
+    const currentText = await getDocumentText();
 
     if (!currentText.trim()) {
         toast({
             variant: 'destructive',
-            title: 'Empty Document',
-            description: 'There is no text in the document to check.',
+            title: 'খালি ডকুমেন্ট',
+            description: 'परीক্ষা করার জন্য ডকুমেন্টে কোনো লেখা নেই।',
         });
         return;
     }
@@ -169,8 +169,8 @@ export function MainPanel() {
     if (state.isOnline && !state.geminiApiKey) {
         toast({
             variant: 'destructive',
-            title: 'API Key Required',
-            description: 'Please add your Gemini API key in the settings.',
+            title: 'API কী প্রয়োজন',
+            description: 'অনুগ্রহ করে সেটিংসে আপনার Gemini API কী যোগ করুন।',
         });
         setSettingsOpen(true);
         return;
@@ -182,16 +182,16 @@ export function MainPanel() {
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
        if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0) {
         toast({
-          title: 'All Clear!',
-          description: 'No suggestions found in your document.',
+          title: 'সবকিছু ঠিক আছে!',
+          description: 'আপনার ডকুমেন্টে কোনো পরামর্শ পাওয়া যায়নি।',
         });
       }
     } catch (e) {
-      const error = e instanceof Error ? e.message : 'An unknown error occurred.';
+      const error = e instanceof Error ? e.message : 'একটি অজানা ত্রুটি ঘটেছে।';
       dispatch({ type: 'CHECK_ERROR', payload: error });
       toast({
         variant: 'destructive',
-        title: 'Error Checking Document',
+        title: 'ডকুমেন্ট পরীক্ষা করার সময় ত্রুটি',
         description: error,
       });
     }
@@ -200,10 +200,10 @@ export function MainPanel() {
   const handleOnlineChange = (isOnline: boolean) => {
     dispatch({ type: 'SET_ONLINE', payload: isOnline });
     toast({
-      title: `Mode changed to ${isOnline ? 'Online' : 'Offline'}`,
+      title: `মোড পরিবর্তন করে ${isOnline ? 'অনলাইন' : 'অফলাইন'} করা হয়েছে`,
       description: isOnline
-        ? 'Using advanced AI for suggestions.'
-        : 'Using local model for basic suggestions.',
+        ? 'উন্নত AI পরামর্শের জন্য ব্যবহৃত হচ্ছে।'
+        : 'সাধারণ পরামর্শের জন্য স্থানীয় মডেল ব্যবহৃত হচ্ছে।',
     });
   };
 
@@ -211,10 +211,10 @@ export function MainPanel() {
     dispatch({ type: 'SET_API_KEY', payload: apiKey });
     if (apiKey) {
       localStorage.setItem('geminiApiKey', apiKey);
-      toast({ title: 'API Key Saved', description: 'Your Gemini API key has been securely stored.' });
+      toast({ title: 'API কী সংরক্ষিত হয়েছে', description: 'আপনার Gemini API কী સુરક્ષিতভাবে সংরক্ষণ করা হয়েছে।' });
     } else {
       localStorage.removeItem('geminiApiKey');
-      toast({ title: 'API Key Removed', variant: 'destructive' });
+      toast({ title: 'API কী মুছে ফেলা হয়েছে', variant: 'destructive' });
     }
   };
 
@@ -226,8 +226,8 @@ export function MainPanel() {
         const newText = text.replace(new RegExp(original, 'g'), replacement);
         setText(newText);
         toast({
-          title: 'Text Replaced (Simulated)',
-          description: `"${original}" has been replaced with "${replacement}".`,
+          title: 'লেখা প্রতিস্থাপিত (सिमुलेटेड)',
+          description: `"${original}" শব্দটি "${replacement}" দিয়ে প্রতিস্থাপিত হয়েছে।`,
         });
 
         // Try to dismiss any card related to this replacement
@@ -255,8 +255,8 @@ export function MainPanel() {
       });
       
       toast({
-        title: 'Text Replaced',
-        description: `"${original}" has been replaced with "${replacement}".`,
+        title: 'লেখা প্রতিস্থাপিত',
+        description: `"${original}" শব্দটি "${replacement}" দিয়ে প্রতিস্থাপিত হয়েছে।`,
       });
       await getDocumentText(); // Refresh the text area after replacement
       
@@ -274,8 +274,8 @@ export function MainPanel() {
       console.error('Error replacing text:', error);
       toast({
         variant: 'destructive',
-        title: 'Replacement Failed',
-        description: 'Could not replace the text in the document.',
+        title: 'প্রতিস্থাপন ব্যর্থ হয়েছে',
+        description: 'ডকুমেন্টে লেখাটি প্রতিস্থাপন করা যায়নি।',
       });
     }
   };
@@ -288,8 +288,8 @@ export function MainPanel() {
   const handleFixFormatting = (id: string) => {
     console.log(`Applying fix for formatting issue ${id}`);
     toast({
-      title: 'Formatting Applied',
-      description: 'The suggested formatting change has been applied. (Not implemented)',
+      title: 'ফরম্যাটিং প্রয়োগ করা হয়েছে',
+      description: 'প্রস্তাবিত ফরম্যাটিং পরিবর্তন প্রয়োগ করা হয়েছে। (বাস্তবায়িত হয়নি)',
     });
     handleIgnoreFormatting(id);
   };
@@ -297,8 +297,8 @@ export function MainPanel() {
   const handleFixStructural = (id: string) => {
     console.log(`Applying fix for structural issue ${id}`);
     toast({
-      title: 'Structural Change Applied',
-      description: 'The suggested structural change has been applied. (Not implemented)',
+      title: 'কাঠামোগত পরিবর্তন প্রয়োগ করা হয়েছে',
+      description: 'প্রস্তাবিত কাঠামোগত পরিবর্তন প্রয়োগ করা হয়েছে। (বাস্তবায়িত হয়নি)',
     });
     handleIgnoreStructural(id);
   };
@@ -306,7 +306,7 @@ export function MainPanel() {
   const handleLearn = async (originalWord: string, correctedWord: string) => {
     const { success, message } = await reportCorrectionAction(originalWord, correctedWord);
     toast({
-      title: success ? 'Model Updated' : 'Update Failed',
+      title: success ? 'মডেল আপডেট হয়েছে' : 'আপডেট ব্যর্থ হয়েছে',
       description: message,
       variant: success ? 'default' : 'destructive',
     });
@@ -335,8 +335,8 @@ export function MainPanel() {
                     <div className="bg-green-100 dark:bg-green-900/50 rounded-full p-4 mb-4">
                         <ThumbsUp className="h-10 w-10 text-green-500" />
                     </div>
-                    <h3 className="text-lg font-semibold">All Clear!</h3>
-                    <p className="text-muted-foreground mt-1 text-sm">We didn't find any suggestions.</p>
+                    <h3 className="text-lg font-semibold">সবকিছু ঠিক আছে!</h3>
+                    <p className="text-muted-foreground mt-1 text-sm">আমরা কোনো পরামর্শ খুঁজে পাইনি।</p>
                 </div>
             );
         }
@@ -345,7 +345,7 @@ export function MainPanel() {
             {state.results.spellingErrors.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
-                  <Type className="mr-2 h-4 w-4" /> Spelling & Grammar ({state.results.spellingErrors.length})
+                  <Type className="mr-2 h-4 w-4" /> বানান এবং ব্যাকরণ ({state.results.spellingErrors.length})
                 </h3>
                 {state.results.spellingErrors.map(error => (
                   <SuggestionCard key={error.id} error={error} onReplace={handleReplace} onIgnore={handleIgnoreSpelling} onLearn={handleLearn} />
@@ -356,7 +356,7 @@ export function MainPanel() {
             {state.results.toneSuggestions.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
-                  <Sparkles className="mr-2 h-4 w-4" /> Tone & Word Choice ({state.results.toneSuggestions.length})
+                  <Sparkles className="mr-2 h-4 w-4" /> لحن এবং শব্দচয়ন ({state.results.toneSuggestions.length})
                 </h3>
                 {state.results.toneSuggestions.map(suggestion => (
                   <ToneSuggestionCard key={suggestion.id} suggestion={suggestion} onReplace={handleReplace} onDismiss={handleIgnoreTone} />
@@ -367,7 +367,7 @@ export function MainPanel() {
             {state.results.structuralSuggestions.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
-                  <Puzzle className="mr-2 h-4 w-4" /> Structural ({state.results.structuralSuggestions.length})
+                  <Puzzle className="mr-2 h-4 w-4" /> কাঠামোগত ({state.results.structuralSuggestions.length})
                 </h3>
                 {state.results.structuralSuggestions.map(suggestion => (
                   <StructuralSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixStructural} onDismiss={handleIgnoreStructural} />
@@ -378,7 +378,7 @@ export function MainPanel() {
             {state.results.formattingSuggestions.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
-                  <Paintbrush className="mr-2 h-4 w-4" /> Formatting ({state.results.formattingSuggestions.length})
+                  <Paintbrush className="mr-2 h-4 w-4" /> ফরম্যাটিং ({state.results.formattingSuggestions.length})
                 </h3>
                 {state.results.formattingSuggestions.map(suggestion => (
                   <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixFormatting} onDismiss={handleIgnoreFormatting} />
@@ -394,8 +394,8 @@ export function MainPanel() {
         return (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <FileText className="w-16 h-16 text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold font-headline">Ready to improve your writing?</h3>
-                <p className="text-muted-foreground mt-1 max-w-sm text-sm">Click "Check Document" to get started.</p>
+                <h3 className="text-lg font-semibold font-headline">আপনার লেখার মান উন্নত করতে প্রস্তুত?</h3>
+                <p className="text-muted-foreground mt-1 max-w-sm text-sm">শুরু করতে "ডকুমেন্ট পরীক্ষা করুন" বোতামে ক্লিক করুন।</p>
             </div>
         );
     }
@@ -424,7 +424,7 @@ export function MainPanel() {
 
         <div className="p-4 border-b">
             <Textarea 
-                placeholder="The content of your Word document will appear here..."
+                placeholder="আপনার Word ডকুমেন্টের বিষয়বস্তু এখানে প্রদর্শিত হবে..."
                 className="w-full h-32 resize-none text-base bg-muted/40"
                 value={text}
                 readOnly // Make the textarea read-only as it reflects the doc content
@@ -440,7 +440,7 @@ export function MainPanel() {
                 ) : (
                     <ScanText />
                 )}
-                <span>{state.status === 'loading' ? 'Checking...' : 'Check Document'}</span>
+                <span>{state.status === 'loading' ? 'পরীক্ষা চলছে...' : 'ডকুমেন্ট পরীক্ষা করুন'}</span>
             </Button>
         </div>
       
