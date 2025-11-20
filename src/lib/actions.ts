@@ -3,6 +3,7 @@
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
 import {
+  mockSpellingErrors,
   mockFormattingSuggestions,
   mockStructuralSuggestions,
 } from '@/lib/placeholder-data';
@@ -28,7 +29,7 @@ export async function getSuggestionsAction(
       if (!results || (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0)) {
         console.log('Online mode returned no suggestions, falling back to offline mock data.');
         return {
-          spellingErrors: [],
+          spellingErrors: mockSpellingErrors,
           formattingSuggestions: mockFormattingSuggestions,
           structuralSuggestions: mockStructuralSuggestions,
           toneSuggestions: [],
@@ -41,7 +42,7 @@ export async function getSuggestionsAction(
       console.error('Gemini API call failed, falling back to offline mode.', error);
       // Fallback to offline mode on API error
       return {
-        spellingErrors: [],
+        spellingErrors: mockSpellingErrors,
         formattingSuggestions: mockFormattingSuggestions,
         structuralSuggestions: mockStructuralSuggestions,
         toneSuggestions: [],
@@ -50,7 +51,7 @@ export async function getSuggestionsAction(
   } else {
     // Offline mode
     return {
-      spellingErrors: [],
+      spellingErrors: mockSpellingErrors,
       formattingSuggestions: mockFormattingSuggestions,
       structuralSuggestions: mockStructuralSuggestions,
       toneSuggestions: [],
