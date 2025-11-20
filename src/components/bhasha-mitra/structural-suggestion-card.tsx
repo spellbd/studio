@@ -7,7 +7,7 @@ import { Wand2 } from 'lucide-react';
 
 interface StructuralSuggestionCardProps {
   suggestion: StructuralSuggestion;
-  onFix: (id: string) => void;
+  onFix: (suggestion: StructuralSuggestion) => void;
   onDismiss: (id: string) => void;
 }
 
@@ -22,9 +22,15 @@ export function StructuralSuggestionCard({ suggestion, onFix, onDismiss }: Struc
       </CardHeader>
       <CardContent className="p-3 pt-0 pb-2">
         <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+        {suggestion.originalText && suggestion.replacementText && (
+            <div className="mt-2 text-xs">
+                <p className="line-through text-destructive">{suggestion.originalText}</p>
+                <p className="text-green-600">{suggestion.replacementText}</p>
+            </div>
+        )}
       </CardContent>
       <CardFooter className="p-3 pt-0 flex justify-end">
-        <Button size="sm" onClick={() => onFix(suggestion.id)} className="h-8">
+        <Button size="sm" onClick={() => onFix(suggestion)} className="h-8">
           <Wand2 className="mr-2 h-4 w-4" />
           ঠিক করুন
         </Button>

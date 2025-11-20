@@ -3,7 +3,7 @@
 import { useReducer, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getSuggestionsAction, reportCorrectionAction } from '@/lib/actions';
-import type { AnalysisResults } from '@/lib/types';
+import type { AnalysisResults, FormattingSuggestion, StructuralSuggestion } from '@/lib/types';
 import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
 import { FormattingSuggestionCard } from './formatting-suggestion-card';
@@ -222,23 +222,26 @@ export function MainPanel() {
   const handleReplace = async (original: string, replacement: string) => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
         console.warn('Word object is not available for replacement. Simulating replacement.');
-        // In web mode, just update the local state for demonstration
-        const newText = text.replace(new RegExp(original, 'g'), replacement);
+        const newText = text.replace(new RegExp(original.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replacement);
         setText(newText);
         toast({
-          title: 'লেখা প্রতিস্থাপিত (सिमुलेटेड)',
+          title: 'লেখা প্রতিস্থাপিত (সিমুলেটেড)',
           description: `"${original}" শব্দটি "${replacement}" দিয়ে প্রতিস্থাপিত হয়েছে।`,
         });
 
-        // Try to dismiss any card related to this replacement
+        // Dismiss related cards
         const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original);
-        if(spellingError) {
-            handleIgnoreSpelling(spellingError.id);
-        }
+        if(spellingError) handleIgnoreSpelling(spellingError.id);
+        
         const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original);
-        if(toneSuggestion) {
-            handleIgnoreTone(toneSuggestion.id);
-        }
+        if(toneSuggestion) handleIgnoreTone(toneSuggestion.id);
+        
+        const structuralSuggestion = state.results?.structuralSuggestions.find(s => s.originalText === original);
+        if(structuralSuggestion) handleIgnoreStructural(structuralSuggestion.id);
+
+        const formattingSuggestion = state.results?.formattingSuggestions.find(s => s.originalText === original);
+        if(formattingSuggestion) handleIgnoreFormatting(formattingSuggestion.id);
+
         return;
     }
     try {
@@ -248,7 +251,6 @@ export function MainPanel() {
         await context.sync();
         
         if (searchResults.items.length > 0) {
-          // Replace all occurrences
           searchResults.items.forEach(item => item.insertText(replacement, 'Replace'));
           await context.sync();
         } else {
@@ -268,15 +270,18 @@ export function MainPanel() {
       
       await getDocumentText(); // Refresh the text area after replacement
       
-      // Dismiss the corresponding card
-      const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original && e.suggestions.includes(replacement));
-      if(spellingError) {
-          handleIgnoreSpelling(spellingError.id);
-      }
-      const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original && s.suggestedWord === replacement);
-      if(toneSuggestion) {
-          handleIgnoreTone(toneSuggestion.id);
-      }
+      // Dismiss the corresponding cards after successful replacement
+       const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original && e.suggestions.includes(replacement));
+       if (spellingError) handleIgnoreSpelling(spellingError.id);
+
+       const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original && s.suggestedWord === replacement);
+       if (toneSuggestion) handleIgnoreTone(toneSuggestion.id);
+
+       const structuralSuggestion = state.results?.structuralSuggestions.find(s => s.originalText === original);
+       if(structuralSuggestion) handleIgnoreStructural(structuralSuggestion.id);
+
+       const formattingSuggestion = state.results?.formattingSuggestions.find(s => s.originalText === original);
+       if(formattingSuggestion) handleIgnoreFormatting(formattingSuggestion.id);
 
     } catch (error) {
       console.error('Error replacing text:', error);
@@ -293,20 +298,21 @@ export function MainPanel() {
   const handleIgnoreStructural = (id: string) => dispatch({ type: 'DISMISS_STRUCTURAL', payload: id });
   const handleIgnoreTone = (id: string) => dispatch({ type: 'DISMISS_TONE', payload: id });
   
-  const handleFixFormatting = (id: string) => {
-    toast({
-      title: 'ম্যানুয়াল পরিবর্তন প্রয়োজন',
-      description: 'ফরম্যাটিং সাজেশনটি ডকুমেন্টে নিজে প্রয়োগ করুন।',
-    });
-    handleIgnoreFormatting(id);
-  };
+  const handleFixSuggestion = (suggestion: StructuralSuggestion | FormattingSuggestion) => {
+    if (suggestion.originalText && suggestion.replacementText) {
+      handleReplace(suggestion.originalText, suggestion.replacementText);
+    } else {
+      toast({
+        title: 'ম্যানুয়াল পরিবর্তন প্রয়োজন',
+        description: 'এই পরামর্শটি ডকুমেন্টে নিজে প্রয়োগ করুন। AI স্বয়ংক্রিয়ভাবে পরিবর্তন করার জন্য কোনো নির্দিষ্ট নির্দেশনা দেয়নি।',
+      });
+    }
 
-  const handleFixStructural = (id: string) => {
-    toast({
-      title: 'ম্যানুয়াল পরিবর্তন প্রয়োজন',
-      description: 'কাঠামোগত সাজেশনটি ডকুমেন্টে নিজে প্রয়োগ করুন।',
-    });
-    handleIgnoreStructural(id);
+    if ('description' in suggestion && state.results?.structuralSuggestions.some(s => s.id === suggestion.id)) {
+        handleIgnoreStructural(suggestion.id);
+    } else {
+        handleIgnoreFormatting(suggestion.id);
+    }
   };
   
   const handleLearn = async (originalWord: string, correctedWord: string) => {
@@ -376,7 +382,7 @@ export function MainPanel() {
                   <Puzzle className="mr-2 h-4 w-4" /> কাঠামোগত ({state.results.structuralSuggestions.length})
                 </h3>
                 {state.results.structuralSuggestions.map(suggestion => (
-                  <StructuralSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixStructural} onDismiss={handleIgnoreStructural} />
+                  <StructuralSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={() => handleFixSuggestion(suggestion)} onDismiss={handleIgnoreStructural} />
                 ))}
               </div>
             )}
@@ -387,7 +393,7 @@ export function MainPanel() {
                   <Paintbrush className="mr-2 h-4 w-4" /> ফরম্যাটিং ({state.results.formattingSuggestions.length})
                 </h3>
                 {state.results.formattingSuggestions.map(suggestion => (
-                  <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={handleFixFormatting} onDismiss={handleIgnoreFormatting} />
+                  <FormattingSuggestionCard key={suggestion.id} suggestion={suggestion} onFix={() => handleFixSuggestion(suggestion)} onDismiss={handleIgnoreFormatting} />
                 ))}
               </div>
             )}

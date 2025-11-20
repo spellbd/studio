@@ -9,12 +9,16 @@ export interface FormattingSuggestion {
   id: string;
   title: string;
   description: string;
+  originalText?: string;
+  replacementText?: string;
 }
 
 export interface StructuralSuggestion {
   id: string;
   title: string;
   description: string;
+  originalText?: string;
+  replacementText?: string;
 }
 
 export interface ToneSuggestion {
