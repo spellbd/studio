@@ -12,12 +12,18 @@ export const mockSpellingErrors: SpellingError[] = [
   },
   {
     id: 'err-2',
+    originalWord: 'চট্রগ্রামে',
+    context: '...তিনি সম্প্রতি চট্রগ্রামে বদলি হয়েছেন।',
+    suggestions: ['চট্টগ্রামে'],
+  },
+  {
+    id: 'err-3',
     originalWord: 'সম্বব',
     context: '...পড়াশুনা চালিয়ে যাওয়া সম্বব নয়।',
     suggestions: ['সম্ভব'],
   },
   {
-    id: 'err-3',
+    id: 'err-4',
     originalWord: 'ছারপত্র',
     context: '...আমাকে ছারপত্র দিয়ে বাধিত করবেন।',
     suggestions: ['ছাড়পত্র'],
@@ -27,8 +33,8 @@ export const mockSpellingErrors: SpellingError[] = [
 export const mockFormattingSuggestions: FormattingSuggestion[] = [
     {
       id: 'fmt-1',
-      title: 'ডাবল স্পেস',
-      description: 'অনুচ্ছেদের শেষে দুটি স্পেস ব্যবহার করা হয়েছে। একটি স্পেস ব্যবহার করা উচিত।',
+      title: 'অতিরিক্ত ফাঁকা লাইন',
+      description: '"নয়।" এবং "অতএব" এর মধ্যে একটি অতিরিক্ত ফাঁকা লাইন রয়েছে যা हटाया যেতে পারে।',
       originalText: 'নয়।\n\nঅতএব',
       replacementText: 'নয়।\nঅতএব',
     },
@@ -37,10 +43,10 @@ export const mockFormattingSuggestions: FormattingSuggestion[] = [
 export const mockStructuralSuggestions: StructuralSuggestion[] = [
     {
       id: 'struct-1',
-      title: 'অপ্রচলিত শব্দ',
-      description: '"চাকুরিজিবি" শব্দটি এখন আর তেমন ব্যবহৃত হয় না। এর পরিবর্তে "চাকরিজীবী" ব্যবহার করা যেতে পারে।',
-      originalText: 'চাকুরিজিবি',
-      replacementText: 'চাকরিজীবী',
+      title: 'বাক্য গঠন',
+      description: '"অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।" বাক্যটি আরও সহজভাবে লেখা যেতে পারে।',
+      originalText: 'অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।',
+      replacementText: 'অতএব, আমাকে ছাড়পত্র প্রদান করলে আমি আপনার প্রতি কৃতজ্ঞ থাকব।',
     },
 ];
 
