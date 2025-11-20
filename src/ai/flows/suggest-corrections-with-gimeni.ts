@@ -64,21 +64,21 @@ const prompt = ai.definePrompt({
   name: 'suggestCorrectionsWithGimeniPrompt',
   input: {schema: SuggestCorrectionsWithGimeniInputSchema},
   output: {schema: SuggestCorrectionsWithGimeniOutputSchema},
-  prompt: `You are an expert in the Bangla language, specializing in spell checking, grammar, and document formatting. Your task is to analyze the provided Bangla text and identify areas for improvement.
+  prompt: `আপনি বাংলা ভাষার একজন विशेषज्ञ, যিনি বানান পরীক্ষা, व्याकरण এবং নথি форматиংয়ে निपुण। আপনার কাজ হলো প্রদত্ত বাংলা পাঠ্য বিশ্লেষণ করা এবং উন্নতির জন্য ক্ষেত্রগুলি চিহ্নিত করা।
 
-Please analyze the text for the following four types of issues:
+অনুগ্রহ করে পাঠ্যটি নিম্নলিখিত চারটি ধরণের সমস্যার জন্য বিশ্লেষণ করুন:
 
-1.  **Spelling and Grammar Errors**: Identify any misspelled words or grammatical mistakes. For each error, you must provide the original word, the context in which it appears, a unique ID, and a list of correct suggestions.
+১. **বানান এবং ব্যাকরণগত ভুল**: যেকোনো ভুল বানান বা ব্যাকরণগত غلطی চিহ্নিত করুন। প্রতিটি ভুলের জন্য, আপনাকে অবশ্যই মূল শব্দটি, যে প্রসঙ্গে এটি উপস্থিত হয়েছে, একটি স্বতন্ত্র আইডি এবং সঠিক পরামর্শগুলির একটি তালিকা সরবরাহ করতে হবে।
 
-2.  **Formatting Suggestions**: Look for inconsistencies in formatting, such as issues with spacing, alignment, or the use of punctuation. For each suggestion, provide a title and a descriptive explanation.
+২. **ফরম্যাটিং संबंधी পরামর্শ**: ফরম্যাটিংয়ে असंगति সন্ধান করুন, যেমন ஸ்பேসিং, অ্যালাইনমেন্ট বা যতিচিহ্নের ব্যবহারে সমস্যা। প্রতিটি পরামর্শের জন্য একটি শিরোনাম এবং একটি वर्णনামূলক ব্যাখ্যা দিন।
 
-3.  **Structural Suggestions**: Analyze the overall structure of the document. Look for problems with headings, paragraph length, sentence clarity, and readability. Provide a title and a description for each suggestion.
+৩. **কাঠামোগত পরামর্শ**: নথির समग्र কাঠামো বিশ্লেষণ করুন। শিরোনাম, অনুচ্ছেদের দৈর্ঘ্য, বাক্যের स्पष्टता এবং পাঠযোগ্যতায় সমস্যা সন্ধান করুন। প্রতিটি পরামর্শের জন্য একটি শিরোনাম এবং विवरण সরবরাহ করুন।
 
-4.  **Tone and Word Choice**: Examine the writing tone and suggest alternative words that would better fit the context or improve the overall tone (e.g., making it more formal, confident, or clear). For each suggestion, provide the original word, its context, the suggested replacement, and a brief explanation for the change.
+۴. **لحن এবং শব্দচयन**: লেখার لحن পরীক্ষা করুন এবং বিকল্প শব্দ பரிந்து করুন যা প্রসঙ্গের সাথে আরও ভালভাবে খাপ খায় বা समग्र لحنকে উন্নত করে (যেমন, এটিকে আরও औपचारिक, आत्मविश्वासী বা स्पष्ट করে তোলে)। প্রতিটি পরামর্শের জন্য, মূল শব্দটি, এর প্রসঙ্গ, প্রস্তাবিত प्रतिस्थापन এবং পরিবর্তনের জন্য একটি সংক্ষিপ্ত ব্যাখ্যা সরবরাহ করুন।
 
-Return your analysis in a JSON object with four keys: 'spellingErrors', 'formattingSuggestions', 'structuralSuggestions', and 'toneSuggestions'. Each key should contain an array of objects corresponding to the issues you found. If you find no issues of a particular type, return an empty array for that key.
+আপনার বিশ্লেষণটি একটি JSON অবজেক্টে চারটি কী দিয়ে ফেরত দিন: 'spellingErrors', 'formattingSuggestions', 'structuralSuggestions', এবং 'toneSuggestions'। প্রতিটি কী-তে আপনার পাওয়া সমস্যাগুলির সাথে সম্পর্কিত অবজেক্টগুলির একটি অ্যারে থাকা উচিত। যদি আপনি কোনো विशेष ধরণের কোনো সমস্যা খুঁজে না পান, তবে সেই কী-এর জন্য একটি খালি অ্যারে ফেরত দিন।
 
-Bangla Text:
+বাংলা পাঠ্য:
 {{{banglaText}}}
 `,
 });
