@@ -21,21 +21,21 @@ export const mockSpellingErrors: SpellingError[] = [
 export const mockFormattingSuggestions: FormattingSuggestion[] = [
   {
     id: 'fmt-2',
-    title: 'Double Spacing After Period',
-    description: 'Found 3 instances of double spaces after a period. Modern typography recommends a single space.',
+    title: 'পিরিয়ডের পরে ডাবল স্পেস',
+    description: 'একটি পিরিয়ডের পরে ডাবল স্পেসের ৩টি উদাহরণ পাওয়া গেছে। আধুনিক টাইপোগ্রাফিতে একটি একক স্পেস ব্যবহারের পরামর্শ দেওয়া হয়।',
   },
 ];
 
 export const mockStructuralSuggestions: StructuralSuggestion[] = [
     {
       id: 'struct-1',
-      title: 'Improve Sentence Clarity',
-      description: 'The sentence "কী শোভা, কী ছায়া গো, কী স্নেহ, কী মায়া গো— কী আঁচল বিছায়েছ বটের মূলে..." is long and could be split for better readability.',
+      title: 'বাক্যের স্বচ্ছতা উন্নত করুন',
+      description: '"কী শোভা, কী ছায়া গো, কী স্নেহ, কী মায়া গো— কী আঁচল বিছায়েছ বটের মূলে..." বাক্যটি দীর্ঘ এবং এটি আরও ভালো পাঠযোগ্যতার জন্য বিভক্ত করা যেতে পারে।',
     },
      {
     id: 'struct-2',
-    title: 'Inconsistent Heading Style',
-    description: 'Some headings are using "Heading 1" while others use "Heading 2". Consider using a consistent style for all top-level headings.',
+    title: 'অসামঞ্জস্যপূর্ণ শিরোনাম শৈলী',
+    description: 'কিছু শিরোনাম "শিরোনাম ১" ব্যবহার করছে এবং অন্যগুলো "শিরোনাম ২" ব্যবহার করছে। সমস্ত শীর্ষ-স্তরের শিরোনামের জন্য একটি সামঞ্জস্যপূর্ণ শৈলী ব্যবহার করার কথা বিবেচনা করুন।',
   },
 ];
 
@@ -45,15 +45,15 @@ export const mockOfflineSpellingErrors: SpellingError[] = [
 export const mockOfflineFormattingSuggestions: FormattingSuggestion[] = [
     {
       id: 'off-fmt-1',
-      title: 'Offline Formatting Suggestion',
-      description: 'This is a sample formatting suggestion from the offline engine.',
+      title: 'অফলাইন ফরম্যাটিং সাজেশন',
+      description: 'এটি অফলাইন ইঞ্জিন থেকে একটি নমুনা ফরম্যাটিং সাজেশন।',
     }
 ];
 
 export const mockOfflineStructuralSuggestions: StructuralSuggestion[] = [
     {
       id: 'off-struct-1',
-      title: 'Offline Structural Suggestion',
-      description: 'This is a sample structural suggestion from the offline engine.',
+      title: 'অফলাইন স্ট্রাকচারাল সাজেশন',
+      description: 'এটি অফলাইন ইঞ্জিন থেকে একটি নমুনা স্ট্রাকচারাল সাজেশন।',
     }
 ];

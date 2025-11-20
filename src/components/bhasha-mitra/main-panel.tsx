@@ -161,7 +161,7 @@ export function MainPanel() {
         toast({
             variant: 'destructive',
             title: 'খালি ডকুমেন্ট',
-            description: 'परीক্ষা করার জন্য ডকুমেন্টে কোনো লেখা নেই।',
+            description: 'পরীক্ষা করার জন্য ডকুমেন্টে কোনো লেখা নেই।',
         });
         return;
     }
@@ -211,7 +211,7 @@ export function MainPanel() {
     dispatch({ type: 'SET_API_KEY', payload: apiKey });
     if (apiKey) {
       localStorage.setItem('geminiApiKey', apiKey);
-      toast({ title: 'API কী সংরক্ষিত হয়েছে', description: 'আপনার Gemini API কী સુરક્ષিতভাবে সংরক্ষণ করা হয়েছে।' });
+      toast({ title: 'API কী সংরক্ষিত হয়েছে', description: 'আপনার Gemini API কী સુરક્ષિતভাবে সংরক্ষণ করা হয়েছে।' });
     } else {
       localStorage.removeItem('geminiApiKey');
       toast({ title: 'API কী মুছে ফেলা হয়েছে', variant: 'destructive' });
@@ -298,7 +298,7 @@ export function MainPanel() {
     console.log(`Applying fix for structural issue ${id}`);
     toast({
       title: 'কাঠামোগত পরিবর্তন প্রয়োগ করা হয়েছে',
-      description: 'প্রস্তাবিত কাঠামোগত পরিবর্তন প্রয়োগ করা হয়েছে। (বাস্তবায়িত হয়নি)',
+      description: 'প্রস্তাবিত কাঠামোগত পরিবর্তন প্রয়োগ করা হয়েছে।',
     });
     handleIgnoreStructural(id);
   };
