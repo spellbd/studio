@@ -3,7 +3,7 @@
 import { useReducer, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getSuggestionsAction, reportCorrectionAction } from '@/lib/actions';
-import type { AnalysisResults, FormattingSuggestion, StructuralSuggestion } from '@/lib/types';
+import type { AnalysisResults, FormattingSuggestion, StructuralSuggestion, ToneSuggestion } from '@/lib/types';
 import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
 import { FormattingSuggestionCard } from './formatting-suggestion-card';
@@ -156,15 +156,18 @@ export function MainPanel() {
   const getDocumentText = async () => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
         setText(fallbackText);
-        return;
+        return fallbackText;
     }
     try {
+      let docText = '';
       await Word.run(async (context: any) => {
         const body = context.document.body;
         context.load(body, 'text');
         await context.sync();
-        setText(body.text);
+        docText = body.text;
+        setText(docText);
       });
+      return docText;
     } catch (error) {
       console.error('Error getting document text:', error);
       toast({
@@ -172,6 +175,8 @@ export function MainPanel() {
         title: 'ত্রুটি',
         description: 'ডকুমেন্ট থেকে টেক্সট পড়া যায়নি।',
       });
+      setText(fallbackText);
+      return fallbackText;
     }
   };
 
