@@ -167,12 +167,7 @@ export function MainPanel() {
 
 
   const handleCheckDocument = async () => {
-    let currentText = text;
-    // If we're in Word, always get the freshest text from the document.
-    if (typeof Word !== 'undefined' && typeof Office !== 'undefined') {
-        currentText = await getDocumentText();
-    }
-
+    const currentText = await getDocumentText();
 
     if (!currentText.trim()) {
         toast({
