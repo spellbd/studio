@@ -27,14 +27,28 @@ const improveOfflineNgramModelFlow = ai.defineFlow(
     inputSchema: ImproveOfflineNgramModelInputSchema,
     outputSchema: z.void(),
   },
-  async input => {
-    // Here, we would call the service that updates the n-gram model.
-    // In this example, we're just logging the input.
-    console.log(`Updating n-gram model with correction: ${input.originalWord} -> ${input.correctedWord}`);
-    // TODO: Integrate with the actual offline learning system (IndexedDB and n-gram model).
-    // This would likely involve:
-    // 1. Fetching the current n-gram model from IndexedDB.
-    // 2. Updating the model with the new word pair.
-    // 3. Storing the updated model back into IndexedDB.
+  async ({ originalWord, correctedWord }) => {
+    // This is a placeholder for a real intelligent learning system.
+    // In a real-world scenario, this flow would interact with a service 
+    // that updates a local n-gram model stored in IndexedDB or a similar
+    // client-side storage. The model would be used by the offline spell 
+    // checker to provide better suggestions over time.
+
+    console.log(`Intelligent Learning System: Processing correction.`);
+    console.log(`Original: "${originalWord}", Corrected: "${correctedWord}"`);
+
+    if (originalWord === correctedWord) {
+        console.log(`Learning new word: "${correctedWord}" has been added to the dictionary.`);
+        // Here you would add logic to persist this new word to the local model.
+    } else {
+        console.log(`Learning correction pair: "${originalWord}" is often corrected to "${correctedWord}".`);
+        // Here you would update the n-gram model to strengthen the probability
+        // of suggesting `correctedWord` for `originalWord` in the future.
+    }
+    
+    // Simulate a short delay to mimic a real async operation.
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    console.log("Learning model updated successfully.");
   }
 );
