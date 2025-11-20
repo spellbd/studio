@@ -64,15 +64,19 @@ const prompt = ai.definePrompt({
   name: 'suggestCorrectionsWithGimeniPrompt',
   input: {schema: SuggestCorrectionsWithGimeniInputSchema},
   output: {schema: SuggestCorrectionsWithGimeniOutputSchema},
-  prompt: `You are a Bangla language and document formatting expert. Analyze the following text and provide suggestions to improve it.
+  prompt: `You are an expert in the Bangla language, specializing in spell checking, grammar, and document formatting. Your task is to analyze the provided Bangla text and identify areas for improvement.
 
-Analyze the provided Bangla text for four types of issues:
-1.  **Spelling and Grammar Errors**: Identify any misspelled words or grammatical mistakes. For each error, provide the original word, the context in which it appears, a unique ID, and a list of correct suggestions.
-2.  **Formatting Suggestions**: Analyze the text for formatting inconsistencies like spacing, alignment, or use of punctuation. Provide a title and a description for each suggestion.
-3.  **Structural Suggestions**: Analyze the document structure. Look for issues with headings, paragraph length, sentence clarity, and overall readability. Provide a title and a description for each suggestion.
-4.  **Tone and Word Choice**: Analyze the writing tone. Suggest alternative words that would better fit the context or improve the tone (e.g., making it more formal, confident, or clear). For each suggestion, provide the original word, the context, the suggested word, and a brief explanation of why the change is recommended.
+Please analyze the text for the following four types of issues:
 
-Return the response as a JSON object with four keys: 'spellingErrors', 'formattingSuggestions', 'structuralSuggestions', and 'toneSuggestions'. Each key should contain an array of objects corresponding to the issues found. If no issues of a certain type are found, return an empty array for that key.
+1.  **Spelling and Grammar Errors**: Identify any misspelled words or grammatical mistakes. For each error, you must provide the original word, the context in which it appears, a unique ID, and a list of correct suggestions.
+
+2.  **Formatting Suggestions**: Look for inconsistencies in formatting, such as issues with spacing, alignment, or the use of punctuation. For each suggestion, provide a title and a descriptive explanation.
+
+3.  **Structural Suggestions**: Analyze the overall structure of the document. Look for problems with headings, paragraph length, sentence clarity, and readability. Provide a title and a description for each suggestion.
+
+4.  **Tone and Word Choice**: Examine the writing tone and suggest alternative words that would better fit the context or improve the overall tone (e.g., making it more formal, confident, or clear). For each suggestion, provide the original word, its context, the suggested replacement, and a brief explanation for the change.
+
+Return your analysis in a JSON object with four keys: 'spellingErrors', 'formattingSuggestions', 'structuralSuggestions', and 'toneSuggestions'. Each key should contain an array of objects corresponding to the issues you found. If you find no issues of a particular type, return an empty array for that key.
 
 Bangla Text:
 {{{banglaText}}}

@@ -40,12 +40,6 @@ export const mockStructuralSuggestions: StructuralSuggestion[] = [
 ];
 
 export const mockOfflineSpellingErrors: SpellingError[] = [
-  {
-    id: 'off-1',
-    originalWord: 'ভালোবাসি',
-    context: 'আমি তোমায় ভালোবাসি।',
-    suggestions: ['ভালবাসি (Offline)'],
-  }
 ];
 
 export const mockOfflineFormattingSuggestions: FormattingSuggestion[] = [

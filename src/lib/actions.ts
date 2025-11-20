@@ -3,9 +3,8 @@
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
 import {
-  mockOfflineSpellingErrors,
-  mockOfflineFormattingSuggestions,
-  mockOfflineStructuralSuggestions,
+  mockFormattingSuggestions,
+  mockStructuralSuggestions,
 } from '@/lib/placeholder-data';
 import type { AnalysisResults } from '@/lib/types';
 
@@ -30,18 +29,18 @@ export async function getSuggestionsAction(
       console.error('Gemini API call failed, falling back to offline mode.', error);
       // Fallback to offline mode on API error
       return {
-        spellingErrors: mockOfflineSpellingErrors,
-        formattingSuggestions: mockOfflineFormattingSuggestions,
-        structuralSuggestions: mockOfflineStructuralSuggestions,
+        spellingErrors: [],
+        formattingSuggestions: mockFormattingSuggestions,
+        structuralSuggestions: mockStructuralSuggestions,
         toneSuggestions: [],
       };
     }
   } else {
     // Offline mode
     return {
-      spellingErrors: mockOfflineSpellingErrors,
-      formattingSuggestions: mockOfflineFormattingSuggestions,
-      structuralSuggestions: mockOfflineStructuralSuggestions,
+      spellingErrors: [],
+      formattingSuggestions: mockFormattingSuggestions,
+      structuralSuggestions: mockStructuralSuggestions,
       toneSuggestions: [],
     };
   }
