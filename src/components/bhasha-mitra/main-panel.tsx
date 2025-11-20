@@ -14,6 +14,7 @@ import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush,
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
+import { DictionaryManagementDialog } from './dictionary-management-dialog';
 
 // Define the Office global object to avoid TypeScript errors.
 // This is provided by the Office Add-in environment at runtime.
@@ -26,6 +27,7 @@ type State = {
   error: string | null;
   isOnline: boolean;
   geminiApiKey: string | null;
+  dictionary: string[];
 };
 
 type Action =
@@ -37,7 +39,8 @@ type Action =
   | { type: 'DISMISS_SPELLING'; payload: string }
   | { type: 'DISMISS_FORMATTING'; payload: string }
   | { type: 'DISMISS_STRUCTURAL'; payload: string }
-  | { type: 'DISMISS_TONE'; payload: string };
+  | { type: 'DISMISS_TONE'; payload: string }
+  | { type: 'SET_DICTIONARY'; payload: string[] };
   
 const initialState: State = {
   status: 'idle',
@@ -45,6 +48,7 @@ const initialState: State = {
   error: null,
   isOnline: true,
   geminiApiKey: null,
+  dictionary: [],
 };
 
 const fallbackText = `প্রধান শিক্ষক
@@ -108,6 +112,8 @@ function reducer(state: State, action: Action): State {
           toneSuggestions: state.results.toneSuggestions.filter(s => s.id !== action.payload),
         },
       };
+    case 'SET_DICTIONARY':
+      return { ...state, dictionary: action.payload };
     default:
       return state;
   }
@@ -116,6 +122,7 @@ function reducer(state: State, action: Action): State {
 export function MainPanel() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [isDictionaryOpen, setDictionaryOpen] = useState(false);
   const [text, setText] = useState('');
   const { toast } = useToast();
 
@@ -123,6 +130,11 @@ export function MainPanel() {
     const savedKey = localStorage.getItem('geminiApiKey');
     if (savedKey) {
       dispatch({ type: 'SET_API_KEY', payload: savedKey });
+    }
+
+    const savedDictionary = localStorage.getItem('localDictionary');
+    if (savedDictionary) {
+      dispatch({ type: 'SET_DICTIONARY', payload: JSON.parse(savedDictionary) });
     }
 
     const initializeOffice = () => {
@@ -143,7 +155,6 @@ export function MainPanel() {
 
   const getDocumentText = async () => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
-        console.warn('Office.js is not available. Using fallback text.');
         setText(fallbackText);
         return;
     }
@@ -326,19 +337,33 @@ export function MainPanel() {
     }
   };
   
-  const handleLearn = async (originalWord: string, correctedWord: string) => {
-    const { success, message } = await reportCorrectionAction(originalWord, correctedWord);
+  const handleLearn = async (word: string) => {
+    const newDictionary = [...new Set([...state.dictionary, word])];
+    localStorage.setItem('localDictionary', JSON.stringify(newDictionary));
+    dispatch({ type: 'SET_DICTIONARY', payload: newDictionary });
+
+    const { success, message } = await reportCorrectionAction(word, word);
     toast({
-      title: success ? 'মডেল আপডেট হয়েছে' : 'আপডেট ব্যর্থ হয়েছে',
+      title: success ? 'শব্দটি অভিধানে যোগ করা হয়েছে' : 'আপডেট ব্যর্থ হয়েছে',
       description: message,
       variant: success ? 'default' : 'destructive',
     });
+
     if (success) {
-        const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === originalWord);
+        const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === word);
         if (errorToDismiss) {
             handleIgnoreSpelling(errorToDismiss.id);
         }
     }
+  };
+
+  const handleDictionaryUpdate = (newDictionary: string[]) => {
+    localStorage.setItem('localDictionary', JSON.stringify(newDictionary));
+    dispatch({ type: 'SET_DICTIONARY', payload: newDictionary });
+    toast({
+        title: 'অভিধান আপডেট হয়েছে',
+        description: 'আপনার অভিধান সফলভাবে আপডেট করা হয়েছে।',
+    });
   };
 
   const renderContent = () => {
@@ -352,7 +377,11 @@ export function MainPanel() {
             </div>
         );
       case 'success':
-        if (!state.results || (state.results.spellingErrors.length === 0 && state.results.formattingSuggestions.length === 0 && state.results.structuralSuggestions.length === 0 && state.results.toneSuggestions.length === 0)) {
+        const filteredSpellingErrors = state.results?.spellingErrors.filter(
+            (error) => !state.dictionary.includes(error.originalWord)
+        ) ?? [];
+
+        if (!state.results || (filteredSpellingErrors.length === 0 && state.results.formattingSuggestions.length === 0 && state.results.structuralSuggestions.length === 0 && state.results.toneSuggestions.length === 0)) {
             return (
                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                     <div className="bg-green-100 dark:bg-green-900/50 rounded-full p-4 mb-4">
@@ -365,12 +394,12 @@ export function MainPanel() {
         }
         return (
           <div className="space-y-6">
-            {state.results.spellingErrors.length > 0 && (
+            {filteredSpellingErrors.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
-                  <Type className="mr-2 h-4 w-4" /> বানান এবং ব্যাকরণ ({state.results.spellingErrors.length})
+                  <Type className="mr-2 h-4 w-4" /> বানান এবং ব্যাকরণ ({filteredSpellingErrors.length})
                 </h3>
-                {state.results.spellingErrors.map(error => (
+                {filteredSpellingErrors.map(error => (
                   <SuggestionCard key={error.id} error={error} onReplace={handleReplace} onIgnore={handleIgnoreSpelling} onLearn={handleLearn} />
                 ))}
               </div>
@@ -478,9 +507,17 @@ export function MainPanel() {
         onOnlineChange={handleOnlineChange}
         apiKey={state.geminiApiKey}
         onApiKeyChange={handleApiKeyChange}
+        onManageDictionary={() => {
+            setSettingsOpen(false);
+            setDictionaryOpen(true);
+        }}
+      />
+      <DictionaryManagementDialog
+        isOpen={isDictionaryOpen}
+        onOpenChange={setDictionaryOpen}
+        dictionary={state.dictionary}
+        onDictionaryUpdate={handleDictionaryUpdate}
       />
     </div>
   );
 }
-
-    

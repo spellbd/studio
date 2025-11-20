@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Globe, WifiOff, KeyRound, Sun, Moon, Eye, EyeOff } from 'lucide-react';
+import { Globe, WifiOff, KeyRound, Sun, Moon, Eye, EyeOff, BookCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '../ui/button';
 import { useTheme } from 'next-themes';
@@ -15,6 +15,7 @@ interface SettingsPanelProps {
   onOnlineChange: (isOnline: boolean) => void;
   apiKey: string | null;
   onApiKeyChange: (apiKey: string | null) => void;
+  onManageDictionary: () => void;
 }
 
 export function SettingsPanel({
@@ -24,6 +25,7 @@ export function SettingsPanel({
   onOnlineChange,
   apiKey,
   onApiKeyChange,
+  onManageDictionary,
 }: SettingsPanelProps) {
   const [localApiKey, setLocalApiKey] = useState(apiKey || '');
   const [showApiKey, setShowApiKey] = useState(false);
@@ -84,6 +86,19 @@ export function SettingsPanel({
                   onCheckedChange={onOnlineChange}
               />
             </div>
+          </div>
+          
+          <div className="space-y-4 rounded-lg border p-4">
+            <div className="space-y-0.5">
+                <Label className="text-base flex items-center gap-2">
+                    <BookCheck className="h-5 w-5 text-primary" />
+                    ব্যক্তিগত অভিধান
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                    আপনার ব্যক্তিগত অভিধানে শব্দ যোগ করুন বা মুছে ফেলুন।
+                </p>
+            </div>
+            <Button onClick={onManageDictionary} className="w-full">অভিধান পরিচালনা করুন</Button>
           </div>
 
           <div className="space-y-4 rounded-lg border p-4">

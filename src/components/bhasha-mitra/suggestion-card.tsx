@@ -10,7 +10,7 @@ interface SuggestionCardProps {
   error: SpellingError;
   onReplace: (original: string, replacement: string) => void;
   onIgnore: (id: string) => void;
-  onLearn: (original: string, learned: string) => void;
+  onLearn: (word: string) => void;
 }
 
 export function SuggestionCard({ error, onReplace, onIgnore, onLearn }: SuggestionCardProps) {
@@ -50,7 +50,7 @@ export function SuggestionCard({ error, onReplace, onIgnore, onLearn }: Suggesti
         </div>
       </CardContent>
        <CardFooter className="p-3 pt-2 flex justify-end">
-         <Button variant="link" size="sm" onClick={() => onLearn(error.originalWord, error.originalWord)} className="text-sm">
+         <Button variant="link" size="sm" onClick={() => onLearn(error.originalWord)} className="text-sm">
            <Lightbulb className="h-4 w-4 mr-1" /> অভিধানে যোগ করুন
          </Button>
       </CardFooter>
