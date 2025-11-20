@@ -220,8 +220,8 @@ export function MainPanel() {
 
 
   const handleReplace = async (original: string, replacement: string) => {
-    if (typeof Word === 'undefined') {
-        console.error('Word object is not available for replacement. Simulating replacement.');
+    if (typeof Word === 'undefined' || typeof Office === 'undefined') {
+        console.warn('Word object is not available for replacement. Simulating replacement.');
         // In web mode, just update the local state for demonstration
         const newText = text.replace(new RegExp(original, 'g'), replacement);
         setText(newText);
@@ -251,6 +251,13 @@ export function MainPanel() {
           // Replace all occurrences
           searchResults.items.forEach(item => item.insertText(replacement, 'Replace'));
           await context.sync();
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'শব্দটি পাওয়া যায়নি',
+                description: `ডকুমেন্টে "${original}" শব্দটি খুঁজে পাওয়া যায়নি।`,
+            });
+            return;
         }
       });
       
@@ -258,14 +265,15 @@ export function MainPanel() {
         title: 'লেখা প্রতিস্থাপিত',
         description: `"${original}" শব্দটি "${replacement}" দিয়ে প্রতিস্থাপিত হয়েছে।`,
       });
+      
       await getDocumentText(); // Refresh the text area after replacement
       
-      // Try to dismiss any card related to this replacement
-      const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original);
+      // Dismiss the corresponding card
+      const spellingError = state.results?.spellingErrors.find(e => e.originalWord === original && e.suggestions.includes(replacement));
       if(spellingError) {
           handleIgnoreSpelling(spellingError.id);
       }
-      const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original);
+      const toneSuggestion = state.results?.toneSuggestions.find(s => s.originalWord === original && s.suggestedWord === replacement);
       if(toneSuggestion) {
           handleIgnoreTone(toneSuggestion.id);
       }
@@ -286,19 +294,17 @@ export function MainPanel() {
   const handleIgnoreTone = (id: string) => dispatch({ type: 'DISMISS_TONE', payload: id });
   
   const handleFixFormatting = (id: string) => {
-    console.log(`Applying fix for formatting issue ${id}`);
     toast({
-      title: 'ফরম্যাটিং প্রয়োগ করা হয়েছে',
-      description: 'প্রস্তাবিত ফরম্যাটিং পরিবর্তন প্রয়োগ করা হয়েছে। (বাস্তবায়িত হয়নি)',
+      title: 'ম্যানুয়াল পরিবর্তন প্রয়োজন',
+      description: 'ফরম্যাটিং সাজেশনটি ডকুমেন্টে নিজে প্রয়োগ করুন।',
     });
     handleIgnoreFormatting(id);
   };
 
   const handleFixStructural = (id: string) => {
-    console.log(`Applying fix for structural issue ${id}`);
     toast({
-      title: 'কাঠামোগত পরিবর্তন প্রয়োগ করা হয়েছে',
-      description: 'প্রস্তাবিত কাঠামোগত পরিবর্তন প্রয়োগ করা হয়েছে।',
+      title: 'ম্যানুয়াল পরিবর্তন প্রয়োজন',
+      description: 'কাঠামোগত সাজেশনটি ডকুমেন্টে নিজে প্রয়োগ করুন।',
     });
     handleIgnoreStructural(id);
   };
