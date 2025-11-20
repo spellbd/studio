@@ -47,6 +47,19 @@ const initialState: State = {
   geminiApiKey: null,
 };
 
+const fallbackText = `প্রধান শিক্ষক
+ক স্কুল এন্ড কলেজ
+ঢাকা
+
+মহোদয়
+আমি আপনার স্কুলের একজন ছাত্র। আমার নাম করিম। আমি দশম শ্রেনিতে পড়ি। আমার বাবা একজন সরকারি চাকুরিজিবি। তিনি সম্প্রতি চট্রগ্রামে বদলি হয়েছেন। তাই আমার পক্ষে ঢাকায় থেকে পড়াশুনা চালিয়ে যাওয়া সম্বব নয়।
+
+অতএব, আপনার কাছে আমার আকুল আবেদন, আমাকে ছারপত্র দিয়ে বাধিত করবেন।
+
+আপনার একান্ত অনুগত ছাত্র
+করিম
+দশম শ্রেনি`;
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'CHECK_START':
@@ -121,14 +134,13 @@ export function MainPanel() {
         });
     } else {
         console.warn("Office.js is not loaded. Running in web mode with mock data.");
-        setText("আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।"); // Fallback for web
+        setText(fallbackText); // Fallback for web
     }
   }, []);
 
   const getDocumentText = async (): Promise<string> => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
         console.warn('Office.js is not available. Using fallback text.');
-        const fallbackText = "আমার সোনার বাংলা, আমি তোমায় ভালোবাসি।";
         setText(fallbackText);
         return fallbackText;
     }
