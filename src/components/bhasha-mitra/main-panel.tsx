@@ -338,28 +338,30 @@ export function MainPanel() {
   };
   
   const handleLearn = async (word: string) => {
+    // Add the word to the dictionary
     const newDictionary = [...new Set([...state.dictionary, word])];
     localStorage.setItem('localDictionary', JSON.stringify(newDictionary));
     dispatch({ type: 'SET_DICTIONARY', payload: newDictionary });
-  
+
     // Dismiss the suggestion card for the learned word immediately
     const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === word);
     if (errorToDismiss) {
       handleIgnoreSpelling(errorToDismiss.id);
     }
-  
+
     // Show toast after UI update
     toast({
       title: 'শব্দটি অভিধানে যোগ করা হয়েছে',
-      description: `"${word}" শব্দটি আপনার ব্যক্তিগত অভিধানে যোগ করা হয়েছে।`,
+      description: `"${word}" শব্দটি আপনার ব্যক্তিগত অভিধানে যোগ করা হয়েছে এবং ভবিষ্যতে এটি আর ভুল হিসেবে দেখানো হবে না।`,
     });
-  
+
     // Asynchronously report the correction to the backend
     try {
+      // Reporting that the original word is the "correct" one.
       await reportCorrectionAction(word, word);
     } catch (error) {
       console.error('Failed to report correction to backend:', error);
-      // Optional: Show a different toast if backend update fails, but the primary action for the user is done.
+      // Optional: Show a different toast if backend update fails.
     }
   };
 
