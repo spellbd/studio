@@ -99,7 +99,7 @@ const suggestCorrectionsWithGimeniFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await prompt(input, {
-        ...(input.apiKey && {config: {apiKey: input.apiKey}}),
+      config: { ...(input.apiKey && {apiKey: input.apiKey}) },
     });
     return output!;
   }
