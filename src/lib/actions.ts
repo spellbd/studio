@@ -1,6 +1,7 @@
 'use server';
 
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
+import { summarizeDocument } from '@/ai/flows/summarize-document';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
 import {
   mockSpellingErrors,
@@ -24,23 +25,9 @@ export async function getSuggestionsAction(
     }
     try {
       const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey });
-      
-      // If the API returns empty results, fallback to mock data to ensure user sees something.
-      if (!results || (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0)) {
-        console.log('Online mode returned no suggestions, falling back to offline mock data.');
-        return {
-          overallFeedback: ' লেখাটি বেশ ভালো, তবে কোনো স্বয়ংক্রিয় পরামর্শ পাওয়া যায়নি।',
-          spellingErrors: mockSpellingErrors,
-          formattingSuggestions: mockFormattingSuggestions,
-          structuralSuggestions: mockStructuralSuggestions,
-          toneSuggestions: [],
-        };
-      }
-
       return results;
-
     } catch (error) {
-      console.error('Gemini API call failed, falling back to offline mode.', error);
+      console.error('Gemini API call failed:', error);
       const errorMessage = error instanceof Error ? error.message : "একটি অজানা ত্রুটি ঘটেছে।";
       throw new Error(`সার্ভার থেকে পরামর্শ আনতে ব্যর্থ: ${errorMessage}`);
     }

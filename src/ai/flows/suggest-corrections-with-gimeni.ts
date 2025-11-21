@@ -39,7 +39,7 @@ const StructuralSuggestionSchema = z.object({
     title: z.string(),
     description: z.string(),
     originalText: z.string().optional().describe("স্বয়ংক্রিয়ভাবে ঠিক করার জন্য মূল টেক্সট। যদি খালি থাকে, তাহলে কোনো স্বয়ংক্রিয় পদক্ষেপ সম্ভব নয়।"),
-    replacementText: z.string().optional().describe("স্বয়ংক্রিয়ভাবে ঠিক করার জন্য প্রতিস্থাপিত টেক্সট।"),
+    replacementText: z.string().optional().describe("স্বয়ংক্রিয়ভাবে ঠিক করার জন্য प्रतिস্থাপিত টেক্সট।"),
 });
 
 const ToneSuggestionSchema = z.object({
@@ -60,7 +60,7 @@ const SuggestCorrectionsWithGimeniOutputSchema = z.object({
 export type SuggestCorrectionsWithGimeniOutput = z.infer<typeof SuggestCorrectionsWithGimeniOutputSchema>;
 
 export async function suggestCorrectionsWithGimeni(
-  input: SuggestCorrectionsWithGimeniInput
+  input: SuggestCorreCTIONSWithGimeniInput
 ): Promise<SuggestCorrectionsWithGimeniOutput> {
   return suggestCorrectionsWithGimeniFlow(input);
 }
@@ -69,7 +69,7 @@ const prompt = ai.definePrompt({
   name: 'suggestCorrectionsWithGimeniPrompt',
   input: {schema: SuggestCorrectionsWithGimeniInputSchema},
   output: {schema: SuggestCorrectionsWithGimeniOutputSchema},
-  prompt: `আপনি বাংলা ভাষার একজন বিশেষজ্ঞ, যিনি বানান পরীক্ষা, ব্যাকরণ, এবং নথি ফরম্যাটিংয়ে নিপুণ। আপনার কাজ হলো প্রদত্ত বাংলা পাঠ্য বিশ্লেষণ করা এবং উন্নতির জন্য ক্ষেত্রগুলি চিহ্নিত করা।
+  prompt: `আপনি বাংলা ভাষার একজন বিশেষজ্ঞ, যিনি বানান পরীক্ষা, ব্যাকরণ, এবং নথি ফরম্যাটিংয়ে নিপুণ। আপনার কাজ হলো প্রদত্ত বাংলা পাঠ্য বিশ্লেষণ করা এবং উন্নতির জন্য ক্ষেত্রগুলি চিহ্নিত করা।
 
 অনুগ্রহ করে পাঠ্যটি নিম্নলিখিত বিষয়গুলির জন্য পুঙ্খানুপুঙ্খভাবে বিশ্লেষণ করুন এবং আপনার বিশ্লেষণ একটি JSON অবজেক্টে ফেরত দিন:
 
