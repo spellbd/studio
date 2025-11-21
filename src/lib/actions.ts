@@ -1,7 +1,5 @@
 'use server';
 
-import { genkit, configure } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
 import {
@@ -25,17 +23,18 @@ export async function getSuggestionsAction(
       throw new Error("Gemini API কী প্রদান করা হয়নি।");
     }
     try {
-      configure({
-        plugins: [
-          googleAI({
-            apiKey: apiKey,
-          }),
-        ],
-        logLevel: 'debug',
-        enableTracing: true,
-      });
+      const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey: apiKey });
+      
+      // Since the summary/overallFeedback feature was removed, we check the main suggestion arrays.
+      const hasSuggestions = results.spellingErrors.length > 0 || 
+                               results.formattingSuggestions.length > 0 ||
+                               results.structuralSuggestions.length > 0 ||
+                               results.toneSuggestions.length > 0;
 
-      const results = await suggestCorrectionsWithGimeni({ banglaText: text });
+      if (!hasSuggestions) {
+          // You might want to provide a specific message when no suggestions are found.
+          // For now, we return the empty results, and the UI will handle the "All good" message.
+      }
       
       return results;
     } catch (error) {
@@ -52,7 +51,7 @@ export async function getSuggestionsAction(
       spellingErrors: mockSpellingErrors,
       formattingSuggestions: mockFormattingSuggestions,
       structuralSuggestions: mockStructuralSuggestions,
-      toneSuggestions: [],
+      toneSuggestions: [], // Tone suggestions are online-only
     };
   }
 }
