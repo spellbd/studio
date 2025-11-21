@@ -225,10 +225,7 @@ export function MainPanel() {
   const handleOnlineChange = (isOnline: boolean) => {
     dispatch({ type: 'SET_ONLINE', payload: isOnline });
     toast({
-      title: `মোড পরিবর্তন করে ${isOnline ? 'অনলাইন' : 'অফলাইন'} করা হয়েছে`,
-      description: isOnline
-        ? 'উন্নত AI পরামর্শের জন্য ব্যবহৃত হচ্ছে।'
-        : 'সাধারণ পরামর্শের জন্য স্থানীয় মডেল ব্যবহৃত হচ্ছে।',
+      title: `মোড ${isOnline ? 'অনলাইন' : 'অফলাইন'} হয়েছে`,
     });
   };
 
@@ -236,7 +233,7 @@ export function MainPanel() {
     dispatch({ type: 'SET_API_KEY', payload: apiKey });
     if (apiKey) {
       localStorage.setItem('geminiApiKey', apiKey);
-      toast({ title: 'API কী সংরক্ষিত হয়েছে', description: 'আপনার Gemini API কী સુરક્ષિતভাবে সংরক্ষণ করা হয়েছে।' });
+      toast({ title: 'API কী সংরক্ষিত হয়েছে' });
     } else {
       localStorage.removeItem('geminiApiKey');
       toast({ title: 'API কী মুছে ফেলা হয়েছে', variant: 'destructive' });
@@ -256,8 +253,7 @@ export function MainPanel() {
         const newText = text.replace(new RegExp(original.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replacement);
         setText(newText);
         toast({
-          title: 'লেখা প্রতিস্থাপিত (সিমুলেটেড)',
-          description: `"${original}" শব্দটি "${replacement}" দিয়ে প্রতিস্থাপিত হয়েছে।`,
+          title: 'লেখা প্রতিস্থাপিত',
         });
 
         // Dismiss the card
@@ -293,7 +289,6 @@ export function MainPanel() {
       
       toast({
         title: 'লেখা প্রতিস্থাপিত',
-        description: `"${original}" শব্দটি "${replacement}" দিয়ে প্রতিস্থাপিত হয়েছে।`,
       });
       
       await getDocumentText(); // Refresh the text area after replacement
@@ -324,7 +319,6 @@ export function MainPanel() {
     updateDictionary([replacement]);
     toast({
         title: 'অভিধান আপডেট হয়েছে',
-        description: `"${replacement}" শব্দটি আপনার ব্যক্তিগত অভিধানে যোগ করা হয়েছে।`,
     });
   };
 
@@ -339,7 +333,7 @@ export function MainPanel() {
     } else {
       toast({
         title: 'ম্যানুয়াল পরিবর্তন প্রয়োজন',
-        description: 'এই পরামর্শটি ডকুমেন্টে নিজে প্রয়োগ করুন। AI স্বয়ংক্রিয়ভাবে পরিবর্তন করার জন্য কোনো নির্দিষ্ট নির্দেশনা দেয়নি।',
+        description: 'এই পরামর্শটি ডকুমেন্টে নিজে প্রয়োগ করুন।',
       });
     }
 
@@ -363,7 +357,6 @@ export function MainPanel() {
     // Show toast after UI update
     toast({
       title: 'শব্দটি অভিধানে যোগ করা হয়েছে',
-      description: `"${word}" শব্দটি আপনার ব্যক্তিগত অভিধানে যোগ করা হয়েছে এবং ভবিষ্যতে এটি আর ভুল হিসেবে দেখানো হবে না।`,
     });
 
     // Asynchronously report the correction to the backend
@@ -381,7 +374,6 @@ export function MainPanel() {
     dispatch({ type: 'SET_DICTIONARY', payload: newDictionary });
     toast({
         title: 'অভিধান আপডেট হয়েছে',
-        description: 'আপনার অভিধান সফলভাবে আপডেট করা হয়েছে।',
     });
   };
 
