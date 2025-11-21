@@ -27,18 +27,8 @@ export function SettingsPanel({
   onApiKeyChange,
   onManageDictionary,
 }: SettingsPanelProps) {
-  const [localApiKey, setLocalApiKey] = useState(apiKey || '');
   const [showApiKey, setShowApiKey] = useState(false);
   const { theme, setTheme } = useTheme();
-
-  const handleSaveApiKey = () => {
-    onApiKeyChange(localApiKey);
-  };
-  
-  const handleRemoveApiKey = () => {
-    setLocalApiKey('');
-    onApiKeyChange(null);
-  };
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -115,8 +105,8 @@ export function SettingsPanel({
               <Input
                 id="api-key"
                 type={showApiKey ? 'text' : 'password'}
-                value={localApiKey}
-                onChange={(e) => setLocalApiKey(e.target.value)}
+                value={apiKey || ''}
+                onChange={(e) => onApiKeyChange(e.target.value)}
                 placeholder="আপনার API কী লিখুন"
               />
               <Button variant="ghost" size="icon" onClick={() => setShowApiKey(!showApiKey)}>
@@ -124,8 +114,7 @@ export function SettingsPanel({
               </Button>
             </div>
             <div className="flex gap-2">
-                <Button onClick={handleSaveApiKey} className="w-full">কী সংরক্ষণ করুন</Button>
-                {apiKey && <Button onClick={handleRemoveApiKey} variant="destructive" className="w-full">কী মুছে ফেলুন</Button>}
+                {apiKey && <Button onClick={() => onApiKeyChange(null)} variant="destructive" className="w-full">কী মুছে ফেলুন</Button>}
             </div>
           </div>
         </div>
