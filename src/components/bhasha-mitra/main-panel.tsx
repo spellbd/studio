@@ -249,7 +249,6 @@ export function MainPanel() {
 
   const handleReplace = async (original: string, replacement: string, associatedError: SpellingError | ToneSuggestion | StructuralSuggestion | FormattingSuggestion) => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
-        console.warn('Word object is not available for replacement. Simulating replacement.');
         const newText = text.replace(new RegExp(original.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replacement);
         setText(newText);
         toast({
