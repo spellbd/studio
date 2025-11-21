@@ -31,7 +31,7 @@ const FormattingSuggestionSchema = z.object({
     title: z.string(),
     description: z.string(),
     originalText: z.string().optional().describe("স্বয়ংক্রিয়ভাবে ঠিক করার জন্য মূল টেক্সট। যদি খালি থাকে, তাহলে কোনো স্বয়ংক্রিয় পদক্ষেপ সম্ভব নয়।"),
-    replacementText: z.string().optional().describe("স্বয়ংক্রিয়ভাবে ঠিক করার জন্য প্রতিস্থাপিত টেক্সট।"),
+    replacementText: z.string().optional().describe("স্বয়ংক্রিয়ভাবে ঠিক করার জন্য प्रतिস্থাপিত টেক্সট।"),
 });
 
 const StructuralSuggestionSchema = z.object({
