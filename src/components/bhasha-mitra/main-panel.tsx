@@ -418,7 +418,7 @@ export function MainPanel() {
             {state.results.toneSuggestions.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
-                  <Sparkles className="mr-2 h-4 w-4" /> لحن এবং শব্দচয়ন ({state.results.toneSuggestions.length})
+                  <Sparkles className="mr-2 h-4 w-4" /> ভাষারীতি ও শব্দচয়ন ({state.results.toneSuggestions.length})
                 </h3>
                 {state.results.toneSuggestions.map(suggestion => (
                   <ToneSuggestionCard key={suggestion.id} suggestion={suggestion} onReplace={(original, replacement) => handleReplace(original, replacement, suggestion)} onDismiss={handleIgnoreTone} />
