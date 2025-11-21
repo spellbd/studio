@@ -25,6 +25,12 @@ export async function getSuggestionsAction(
     }
     try {
       const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey });
+      if (!results.spellingErrors.length && !results.formattingSuggestions.length && !results.structuralSuggestions.length && !results.toneSuggestions.length && !results.overallFeedback) {
+        return {
+            ...results,
+            overallFeedback: 'লেখাটি বেশ ভালো, তবে কোনো স্বয়ংক্রিয় পরামর্শ পাওয়া যায়নি।',
+        }
+      }
       return results;
     } catch (error) {
       console.error('Gemini API call failed:', error);
