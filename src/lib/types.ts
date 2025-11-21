@@ -30,7 +30,6 @@ export interface ToneSuggestion {
 }
 
 export type AnalysisResults = {
-  overallFeedback: string;
   spellingErrors: SpellingError[];
   formattingSuggestions: FormattingSuggestion[];
   structuralSuggestions: StructuralSuggestion[];

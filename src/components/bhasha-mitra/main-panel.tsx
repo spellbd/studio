@@ -10,12 +10,11 @@ import { FormattingSuggestionCard } from './formatting-suggestion-card';
 import { StructuralSuggestionCard } from './structural-suggestion-card';
 import { ToneSuggestionCard } from './tone-suggestion-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush, Puzzle, Sparkles, MessageSquareQuote } from 'lucide-react';
+import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush, Puzzle, Sparkles } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
 import { DictionaryManagementDialog } from './dictionary-management-dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 
 // Define the Office global object to avoid TypeScript errors.
@@ -389,7 +388,7 @@ export function MainPanel() {
                                (state.results?.structuralSuggestions?.length ?? 0) > 0 ||
                                (state.results?.toneSuggestions?.length ?? 0) > 0;
 
-        if (!state.results || (!hasSuggestions && !state.results.overallFeedback)) {
+        if (!state.results || !hasSuggestions) {
             return (
                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                     <div className="bg-green-100 dark:bg-green-900/50 rounded-full p-4 mb-4">
@@ -401,19 +400,7 @@ export function MainPanel() {
             );
         }
         return (
-          <div className="space-y-6">
-            {state.results.overallFeedback && (
-                 <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-                    <CardHeader className="flex flex-row items-center space-x-3 p-4 pb-2">
-                        <MessageSquareQuote className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                        <CardTitle className="text-base font-semibold text-blue-800 dark:text-blue-300">সার্বিক মূল্যায়ন</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                        <p className="text-sm text-blue-700 dark:text-blue-200">{state.results.overallFeedback}</p>
-                    </CardContent>
-                </Card>
-            )}
-
+          <div className="space-y-6 p-4">
             {filteredSpellingErrors.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
@@ -518,7 +505,7 @@ export function MainPanel() {
             </div>
         </div>
       
-      <main className="flex-1 overflow-y-auto p-4">
+      <main className="flex-1 overflow-y-auto">
         {renderContent()}
       </main>
 

@@ -1,6 +1,6 @@
 'use server';
 
-import { genkit } from 'genkit';
+import { genkit, configure } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
@@ -25,20 +25,18 @@ export async function getSuggestionsAction(
       throw new Error("Gemini API কী প্রদান করা হয়নি।");
     }
     try {
-      // Dynamically configure Genkit with the user's API key for this specific action
-      genkit({
-        plugins: [googleAI({ apiKey })],
-        model: 'googleai/gemini-2.5-flash',
+      configure({
+        plugins: [
+          googleAI({
+            apiKey: apiKey,
+          }),
+        ],
+        logLevel: 'debug',
+        enableTracing: true,
       });
 
       const results = await suggestCorrectionsWithGimeni({ banglaText: text });
       
-      if (!results.spellingErrors.length && !results.formattingSuggestions.length && !results.structuralSuggestions.length && !results.toneSuggestions.length && !results.overallFeedback) {
-        return {
-            ...results,
-            overallFeedback: 'লেখাটি বেশ ভালো, তবে কোনো স্বয়ংক্রিয় পরামর্শ পাওয়া যায়নি।',
-        }
-      }
       return results;
     } catch (error) {
       console.error('Gemini API call failed:', error);
@@ -51,7 +49,6 @@ export async function getSuggestionsAction(
   } else {
     // Offline mode
     return {
-      overallFeedback: 'আপনি বর্তমানে অফলাইন মোডে আছেন। সংযোগ পেলে আরও উন্নত পরামর্শের জন্য অনলাইন মোড ব্যবহার করুন।',
       spellingErrors: mockSpellingErrors,
       formattingSuggestions: mockFormattingSuggestions,
       structuralSuggestions: mockStructuralSuggestions,
