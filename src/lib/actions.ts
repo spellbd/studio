@@ -24,23 +24,14 @@ export async function getSuggestionsAction(
     }
     try {
       const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey: apiKey });
-      
-      // Since the summary/overallFeedback feature was removed, we check the main suggestion arrays.
-      const hasSuggestions = results.spellingErrors.length > 0 || 
-                               results.formattingSuggestions.length > 0 ||
-                               results.structuralSuggestions.length > 0 ||
-                               results.toneSuggestions.length > 0;
-
-      if (!hasSuggestions) {
-          // You might want to provide a specific message when no suggestions are found.
-          // For now, we return the empty results, and the UI will handle the "All good" message.
-      }
-      
       return results;
     } catch (error) {
       console.error('Gemini API call failed:', error);
       if (error instanceof Error && error.message.includes('API key not valid')) {
         throw new Error('আপনার প্রদান করা Gemini API কী সঠিক নয়। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      }
+      if (error instanceof Error && error.message.includes('Please pass in the API key')) {
+        throw new Error('অনুগ্রহ করে সেটিংসে আপনার Gemini API কী যোগ করুন।');
       }
       const errorMessage = error instanceof Error ? error.message : "একটি অজানা ত্রুটি ঘটেছে।";
       throw new Error(`সার্ভার থেকে পরামর্শ আনতে ব্যর্থ: ${errorMessage}`);
