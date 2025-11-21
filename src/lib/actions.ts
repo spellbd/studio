@@ -2,6 +2,7 @@
 
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
+import { summarizeDocument } from '@/ai/flows/summarize-document';
 import {
   mockSpellingErrors,
   mockFormattingSuggestions,
@@ -70,5 +71,26 @@ export async function reportCorrectionAction(
   } catch (error) {
     console.error('Failed to report correction:', error);
     return { success: false, message: 'লার্নিং মডেল আপডেট করতে ব্যর্থ হয়েছে।' };
+  }
+}
+
+export async function getSummaryAction(
+  text: string,
+  apiKey: string | null
+): Promise<string> {
+  if (!apiKey) {
+    throw new Error('সারসংক্ষেপ তৈরি করতে একটি Gemini API কী প্রয়োজন।');
+  }
+  if (!text.trim()) {
+    throw new Error('সারসংক্ষেপ তৈরি করার জন্য কোনো লেখা পাওয়া যায়নি।');
+  }
+
+  try {
+    const result = await summarizeDocument({ textToSummarize: text, apiKey });
+    return result.summary;
+  } catch (error) {
+    console.error('Error getting summary:', error);
+    const errorMessage = error instanceof Error ? error.message : 'একটি অজানা ত্রুটি ঘটেছে।';
+    throw new Error(`সারসংক্ষেপ তৈরি করতে ব্যর্থ হয়েছে: ${errorMessage}`);
   }
 }
