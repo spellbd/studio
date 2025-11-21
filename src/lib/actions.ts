@@ -2,7 +2,6 @@
 
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
-import { summarizeDocument } from '@/ai/flows/summarize-document';
 import {
   mockSpellingErrors,
   mockFormattingSuggestions,
@@ -30,6 +29,7 @@ export async function getSuggestionsAction(
       if (!results || (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0)) {
         console.log('Online mode returned no suggestions, falling back to offline mock data.');
         return {
+          overallFeedback: ' লেখাটি বেশ ভালো, তবে কোনো স্বয়ংক্রিয় পরামর্শ পাওয়া যায়নি।',
           spellingErrors: mockSpellingErrors,
           formattingSuggestions: mockFormattingSuggestions,
           structuralSuggestions: mockStructuralSuggestions,
@@ -41,17 +41,13 @@ export async function getSuggestionsAction(
 
     } catch (error) {
       console.error('Gemini API call failed, falling back to offline mode.', error);
-      // Fallback to offline mode on API error
-      return {
-        spellingErrors: mockSpellingErrors,
-        formattingSuggestions: mockFormattingSuggestions,
-        structuralSuggestions: mockStructuralSuggestions,
-        toneSuggestions: [],
-      };
+      const errorMessage = error instanceof Error ? error.message : "একটি অজানা ত্রুটি ঘটেছে।";
+      throw new Error(`সার্ভার থেকে পরামর্শ আনতে ব্যর্থ: ${errorMessage}`);
     }
   } else {
     // Offline mode
     return {
+      overallFeedback: 'আপনি বর্তমানে অফলাইন মোডে আছেন। সংযোগ পেলে আরও উন্নত পরামর্শের জন্য অনলাইন মোড ব্যবহার করুন।',
       spellingErrors: mockSpellingErrors,
       formattingSuggestions: mockFormattingSuggestions,
       structuralSuggestions: mockStructuralSuggestions,
@@ -67,30 +63,9 @@ export async function reportCorrectionAction(
   try {
     await improveOfflineNgramModel({ originalWord, correctedWord });
     console.log(`Reported correction: ${originalWord} -> ${correctedWord}`);
-    return { success: true, message: 'ধন্যবাদ! লার্নিং মডেলটি আপডেট করা হয়েছে।' };
+    return { success: true, message: 'ধন্যবাদ! আপনার মতামত সংরক্ষিত হয়েছে।' };
   } catch (error) {
     console.error('Failed to report correction:', error);
-    return { success: false, message: 'লার্নিং মডেল আপডেট করতে ব্যর্থ হয়েছে।' };
-  }
-}
-
-export async function getSummaryAction(
-  text: string,
-  apiKey: string | null
-): Promise<string> {
-  if (!apiKey) {
-    throw new Error('সারসংক্ষেপ তৈরি করতে একটি Gemini API কী প্রয়োজন।');
-  }
-  if (!text.trim()) {
-    throw new Error('সারসংক্ষেপ তৈরি করার জন্য কোনো লেখা পাওয়া যায়নি।');
-  }
-
-  try {
-    const result = await summarizeDocument({ textToSummarize: text, apiKey });
-    return result.summary;
-  } catch (error) {
-    console.error('Error getting summary:', error);
-    const errorMessage = error instanceof Error ? error.message : 'একটি অজানা ত্রুটি ঘটেছে।';
-    throw new Error(`সারসংক্ষেপ তৈরি করতে ব্যর্থ হয়েছে: ${errorMessage}`);
+    return { success: false, message: 'মতামত সংরক্ষণ করতে ব্যর্থ হয়েছে।' };
   }
 }

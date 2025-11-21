@@ -2,7 +2,7 @@
 
 import { useReducer, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { getSuggestionsAction, reportCorrectionAction, getSummaryAction } from '@/lib/actions';
+import { getSuggestionsAction } from '@/lib/actions';
 import type { AnalysisResults, FormattingSuggestion, SpellingError, StructuralSuggestion, ToneSuggestion } from '@/lib/types';
 import { SettingsPanel } from './settings-panel';
 import { SuggestionCard } from './suggestion-card';
@@ -10,17 +10,13 @@ import { FormattingSuggestionCard } from './formatting-suggestion-card';
 import { StructuralSuggestionCard } from './structural-suggestion-card';
 import { ToneSuggestionCard } from './tone-suggestion-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush, Puzzle, Sparkles, Newspaper } from 'lucide-react';
+import { ThumbsUp, FileText, Settings, LoaderCircle, ScanText, Type, Paintbrush, Puzzle, Sparkles, MessageSquareQuote } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
 import { DictionaryManagementDialog } from './dictionary-management-dialog';
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-  } from "@/components/ui/accordion"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 
 // Define the Office global object to avoid TypeScript errors.
 // This is provided by the Office Add-in environment at runtime.
@@ -29,9 +25,7 @@ declare const Word: any;
 
 type State = {
   status: 'idle' | 'loading' | 'success' | 'error';
-  summaryStatus: 'idle' | 'loading' | 'success' | 'error';
   results: AnalysisResults | null;
-  summary: string | null;
   error: string | null;
   isOnline: boolean;
   geminiApiKey: string | null;
@@ -42,9 +36,6 @@ type Action =
   | { type: 'CHECK_START'; isOnline: boolean }
   | { type: 'CHECK_SUCCESS'; payload: AnalysisResults }
   | { type: 'CHECK_ERROR'; payload: string }
-  | { type: 'SUMMARY_START' }
-  | { type: 'SUMMARY_SUCCESS'; payload: string }
-  | { type: 'SUMMARY_ERROR'; payload: string }
   | { type: 'SET_ONLINE'; payload: boolean }
   | { type: 'SET_API_KEY'; payload: string | null }
   | { type: 'DISMISS_SPELLING'; payload: string }
@@ -55,9 +46,7 @@ type Action =
   
 const initialState: State = {
   status: 'idle',
-  summaryStatus: 'idle',
   results: null,
-  summary: null,
   error: null,
   isOnline: true,
   geminiApiKey: null,
@@ -80,17 +69,11 @@ const fallbackText = `প্রধান শিক্ষক
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'CHECK_START':
-      return { ...state, status: 'loading', error: null, isOnline: action.isOnline };
+      return { ...state, status: 'loading', error: null, isOnline: action.isOnline, results: null };
     case 'CHECK_SUCCESS':
       return { ...state, status: 'success', results: action.payload };
     case 'CHECK_ERROR':
       return { ...state, status: 'error', error: action.payload };
-    case 'SUMMARY_START':
-        return { ...state, summaryStatus: 'loading', error: null };
-    case 'SUMMARY_SUCCESS':
-        return { ...state, summaryStatus: 'success', summary: action.payload };
-    case 'SUMMARY_ERROR':
-        return { ...state, summaryStatus: 'error', error: action.payload };
     case 'SET_ONLINE':
       return { ...state, isOnline: action.payload };
     case 'SET_API_KEY':
@@ -199,7 +182,7 @@ export function MainPanel() {
 
 
   const handleCheckDocument = async () => {
-    const currentText = text;
+    const currentText = await getDocumentText();
 
     if (!currentText.trim()) {
         toast({
@@ -236,31 +219,6 @@ export function MainPanel() {
       toast({
         variant: 'destructive',
         title: 'ডকুমেন্ট পরীক্ষা করার সময় ত্রুটি',
-        description: error,
-      });
-    }
-  };
-
-  const handleGetSummary = async () => {
-    const currentText = text;
-    if (!state.isOnline || !state.geminiApiKey) {
-      toast({
-        variant: 'destructive',
-        title: 'অনলাইন মোড প্রয়োজন',
-        description: 'সারসংক্ষেপ তৈরি করতে অনলাইন মোড এবং Gemini API কী প্রয়োজন।',
-      });
-      return;
-    }
-    dispatch({ type: 'SUMMARY_START' });
-    try {
-      const summary = await getSummaryAction(currentText, state.geminiApiKey);
-      dispatch({ type: 'SUMMARY_SUCCESS', payload: summary });
-    } catch (e) {
-      const error = e instanceof Error ? e.message : 'একটি অজানা ত্রুটি ঘটেছে।';
-      dispatch({ type: 'SUMMARY_ERROR', payload: error });
-      toast({
-        variant: 'destructive',
-        title: 'সারসংক্ষেপ তৈরিতে ত্রুটি',
         description: error,
       });
     }
@@ -401,15 +359,6 @@ export function MainPanel() {
     toast({
       title: 'শব্দটি অভিধানে যোগ করা হয়েছে',
     });
-
-    // Asynchronously report the correction to the backend
-    try {
-      // Reporting that the original word is the "correct" one.
-      await reportCorrectionAction(word, word);
-    } catch (error) {
-      console.error('Failed to report correction to backend:', error);
-      // Optional: Show a different toast if backend update fails.
-    }
   };
 
   const handleDictionaryUpdate = (newDictionary: string[]) => {
@@ -420,26 +369,12 @@ export function MainPanel() {
     });
   };
 
-  const renderSummaryContent = () => {
-    switch (state.summaryStatus) {
-        case 'loading':
-            return <Skeleton className="h-20 w-full" />;
-        case 'success':
-            return <p className="text-sm text-foreground whitespace-pre-wrap">{state.summary}</p>;
-        case 'error':
-            return <div className="p-4 text-destructive text-center">{state.error}</div>;
-        case 'idle':
-        default:
-            return null;
-    }
-  }
-
   const renderContent = () => {
     switch (state.status) {
       case 'loading':
         return (
             <div className="p-4 space-y-4">
-                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-16 w-full" />
                 <Skeleton className="h-24 w-full" />
                 <Skeleton className="h-24 w-full" />
             </div>
@@ -448,8 +383,13 @@ export function MainPanel() {
         const filteredSpellingErrors = state.results?.spellingErrors.filter(
             (error) => !state.dictionary.includes(error.originalWord)
         ) ?? [];
+        
+        const hasSuggestions = filteredSpellingErrors.length > 0 || 
+                               (state.results?.formattingSuggestions?.length ?? 0) > 0 ||
+                               (state.results?.structuralSuggestions?.length ?? 0) > 0 ||
+                               (state.results?.toneSuggestions?.length ?? 0) > 0;
 
-        if (!state.results || (filteredSpellingErrors.length === 0 && state.results.formattingSuggestions.length === 0 && state.results.structuralSuggestions.length === 0 && state.results.toneSuggestions.length === 0)) {
+        if (!state.results || (!hasSuggestions && !state.results.overallFeedback)) {
             return (
                 <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                     <div className="bg-green-100 dark:bg-green-900/50 rounded-full p-4 mb-4">
@@ -462,6 +402,18 @@ export function MainPanel() {
         }
         return (
           <div className="space-y-6">
+            {state.results.overallFeedback && (
+                 <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                    <CardHeader className="flex flex-row items-center space-x-3 p-4 pb-2">
+                        <MessageSquareQuote className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        <CardTitle className="text-base font-semibold text-blue-800 dark:text-blue-300">সার্বিক মূল্যায়ন</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                        <p className="text-sm text-blue-700 dark:text-blue-200">{state.results.overallFeedback}</p>
+                    </CardContent>
+                </Card>
+            )}
+
             {filteredSpellingErrors.length > 0 && (
               <div className="space-y-3">
                 <h3 className="flex items-center text-sm font-semibold text-muted-foreground px-1">
@@ -549,7 +501,7 @@ export function MainPanel() {
                 value={text}
                 readOnly // Make the textarea read-only as it reflects the doc content
             />
-            <div className="grid grid-cols-2 gap-2 mt-3">
+            <div className="grid grid-cols-1 gap-2 mt-3">
                 <Button
                     onClick={handleCheckDocument}
                     disabled={state.status === 'loading'}
@@ -561,40 +513,12 @@ export function MainPanel() {
                     ) : (
                         <ScanText />
                     )}
-                    <span>{state.status === 'loading' ? 'পরীক্ষা চলছে...' : 'পরীক্ষা করুন'}</span>
-                </Button>
-                 <Button
-                    onClick={handleGetSummary}
-                    disabled={state.summaryStatus === 'loading' || !state.isOnline}
-                    className="w-full font-semibold"
-                    size="lg"
-                    variant="outline"
-                >
-                    {state.summaryStatus === 'loading' ? (
-                        <LoaderCircle className="animate-spin" />
-                    ) : (
-                        <Newspaper />
-                    )}
-                    <span>{state.summaryStatus === 'loading' ? 'সারসংক্ষেপ...' : 'সারসংক্ষেপ'}</span>
+                    <span>{state.status === 'loading' ? 'পরীক্ষা চলছে...' : 'ডকুমেন্ট পরীক্ষা করুন'}</span>
                 </Button>
             </div>
         </div>
       
       <main className="flex-1 overflow-y-auto p-4">
-        {state.summaryStatus !== 'idle' && (
-            <Accordion type="single" collapsible defaultValue="item-1" className="mb-4">
-                <AccordionItem value="item-1">
-                    <AccordionTrigger>
-                        <h3 className="flex items-center text-base font-semibold">
-                            <Newspaper className="mr-2 h-5 w-5" /> ডকুমেন্টের সারসংক্ষেপ
-                        </h3>
-                    </AccordionTrigger>
-                    <AccordionContent className="p-2">
-                        {renderSummaryContent()}
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-        )}
         {renderContent()}
       </main>
 
