@@ -192,7 +192,9 @@ export function MainPanel() {
         return;
     }
 
-    if (state.isOnline && !state.geminiApiKey) {
+    const apiKey = state.geminiApiKey || localStorage.getItem('geminiApiKey');
+
+    if (state.isOnline && !apiKey) {
         toast({
             variant: 'destructive',
             title: 'API কী প্রয়োজন',
@@ -204,7 +206,7 @@ export function MainPanel() {
 
     dispatch({ type: 'CHECK_START', isOnline: state.isOnline });
     try {
-      const results = await getSuggestionsAction(currentText, state.isOnline, state.geminiApiKey);
+      const results = await getSuggestionsAction(currentText, state.isOnline, apiKey);
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
        if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0) {
         toast({
