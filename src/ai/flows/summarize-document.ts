@@ -15,7 +15,6 @@ const SummarizeDocumentInputSchema = z.object({
   textToSummarize: z
     .string()
     .describe('The text document to be summarized.'),
-  apiKey: z.string().optional().describe('Optional Gemini API key.'),
 });
 export type SummarizeDocumentInput = z.infer<typeof SummarizeDocumentInputSchema>;
 
@@ -50,9 +49,7 @@ const summarizeDocumentFlow = ai.defineFlow(
     outputSchema: SummarizeDocumentOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input, {
-        ...(input.apiKey ? { config: { apiKey: input.apiKey } } : {}),
-    });
+    const {output} = await prompt(input);
     return output!;
   }
 );

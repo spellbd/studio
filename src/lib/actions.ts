@@ -1,7 +1,8 @@
 'use server';
 
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { suggestCorrectionsWithGimeni } from '@/ai/flows/suggest-corrections-with-gimeni';
-import { summarizeDocument } from '@/ai/flows/summarize-document';
 import { improveOfflineNgramModel } from '@/ai/flows/improve-offline-ngram-model';
 import {
   mockSpellingErrors,
@@ -24,7 +25,14 @@ export async function getSuggestionsAction(
       throw new Error("Gemini API কী প্রদান করা হয়নি।");
     }
     try {
-      const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey });
+      // Dynamically configure Genkit with the user's API key for this specific action
+      genkit({
+        plugins: [googleAI({ apiKey })],
+        model: 'googleai/gemini-2.5-flash',
+      });
+
+      const results = await suggestCorrectionsWithGimeni({ banglaText: text });
+      
       if (!results.spellingErrors.length && !results.formattingSuggestions.length && !results.structuralSuggestions.length && !results.toneSuggestions.length && !results.overallFeedback) {
         return {
             ...results,
@@ -34,6 +42,9 @@ export async function getSuggestionsAction(
       return results;
     } catch (error) {
       console.error('Gemini API call failed:', error);
+      if (error instanceof Error && error.message.includes('API key not valid')) {
+        throw new Error('আপনার প্রদান করা Gemini API কী সঠিক নয়। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      }
       const errorMessage = error instanceof Error ? error.message : "একটি অজানা ত্রুটি ঘটেছে।";
       throw new Error(`সার্ভার থেকে পরামর্শ আনতে ব্যর্থ: ${errorMessage}`);
     }

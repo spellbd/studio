@@ -15,7 +15,6 @@ const SuggestCorrectionsWithGimeniInputSchema = z.object({
   banglaText: z
     .string()
     .describe('The Bangla text to provide corrections for.'),
-  apiKey: z.string().optional().describe('Optional Gemini API key.'),
 });
 export type SuggestCorrectionsWithGimeniInput = z.infer<typeof SuggestCorrectionsWithGimeniInputSchema>;
 
@@ -80,7 +79,7 @@ const prompt = ai.definePrompt({
 ৩. **ফরম্যাটিং ও বিরামচিহ্ন (Formatting and Punctuation)**: ফরম্যাটিংয়ে অসামঞ্জস্য সন্ধান করুন, যেমন স্পেসিং, অ্যালাইনমেন্ট বা যতিচিহ্নের ব্যবহারে সমস্যা। অনুপস্থিত দাঁড়ি (।), কমা (,), সেমিকোলন (;) ইত্যাদির মতো বিরামচিহ্ন যোগ করার পরামর্শ দিন। প্রতিটি পরামর্শের জন্য একটি শিরোনাম, একটি বর্ণনামূলক ব্যাখ্যা দিন। যদি সম্ভব হয়, তাহলে একটি স্বয়ংক্রিয় সমাধানের জন্য মূল টেক্সট (originalText) এবং প্রতিস্থাপিত টেক্সট (replacementText) সরবরাহ করুন। (JSON output key: "formattingSuggestions")
 
 ৪. **কাঠামোগত পরামর্শ এবং ভাষারীতি (Structure and Style)**:
-   - **নথির ধরণ (Document Type)**: প্রথমে নথির ধরণ (যেমন: আবেদনপত্র, প্রতিবেদন, ইমেইল, প্রবন্ধ ইত্যাদি) সনাক্ত করুন।
+   - **নথির ধরণ (Document Type)**: প্রথমে নথির ধরণ (जैसे: আবেদনপত্র, প্রতিবেদন, ইমেইল, প্রবন্ধ ইত্যাদি) সনাক্ত করুন।
    - **অনুপস্থিত অংশ (Missing Sections)**: সেই ধরণের নথির জন্য প্রয়োজনীয় কিন্তু অনুপস্থিত অংশগুলো (যেমন: বিষয়, তারিখ, স্বাক্ষর) যোগ করার জন্য পরামর্শ দিন।
    - **ভাষারীতি (Language Consistency)**: লেখাটিতে সাধু ও চলিত ভাষার মিশ্রণ ঘটেছে কিনা তা পরীক্ষা করুন। যদি মিশ্রণ পাওয়া যায়, তাহলে সামঞ্জস্যপূর্ণ ভাষারীতি (সাধারণত চলিত) ব্যবহারের জন্য পরামর্শ দিন।
    - **বাক্য গঠন (Sentence Structure)**: শিরোনাম, অনুচ্ছেদের দৈর্ঘ্য এবং বাক্যের স্পষ্টতা উন্নত করার জন্য পরামর্শ দিন। (JSON output key: "structuralSuggestions")
@@ -101,9 +100,7 @@ const suggestCorrectionsWithGimeniFlow = ai.defineFlow(
     outputSchema: SuggestCorrectionsWithGimeniOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input, {
-      ...(input.apiKey ? { config: { apiKey: input.apiKey } } : {}),
-    });
+    const {output} = await prompt(input);
     return output!;
   }
 );
