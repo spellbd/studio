@@ -20,21 +20,18 @@ export async function getSuggestionsAction(
 
   if (isOnline) {
     if (!apiKey) {
-      throw new Error("Gemini API কী প্রদান করা হয়নি।");
+      throw new Error("Gemini API কী প্রদান করা হয়নি। অনুগ্রহ করে সেটিংসে যোগ করুন।");
     }
     try {
       const results = await suggestCorrectionsWithGimeni({ banglaText: text, apiKey: apiKey });
       return results;
     } catch (error) {
       console.error('Gemini API call failed:', error);
-      if (error instanceof Error && error.message.includes('API key not valid')) {
+      if (error instanceof Error && (error.message.includes('API key not valid') || error.message.includes('invalid'))) {
         throw new Error('আপনার প্রদান করা Gemini API কী সঠিক নয়। অনুগ্রহ করে আবার চেষ্টা করুন।');
       }
-      if (error instanceof Error && error.message.includes('Please pass in the API key')) {
-        throw new Error('অনুগ্রহ করে সেটিংসে আপনার Gemini API কী যোগ করুন।');
-      }
       const errorMessage = error instanceof Error ? error.message : "একটি অজানা ত্রুটি ঘটেছে।";
-      throw new Error(`সার্ভার থেকে পরামর্শ আনতে ব্যর্থ: ${errorMessage}`);
+      throw new Error(errorMessage);
     }
   } else {
     // Offline mode

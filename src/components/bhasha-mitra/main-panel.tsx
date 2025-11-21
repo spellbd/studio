@@ -219,7 +219,7 @@ export function MainPanel() {
       dispatch({ type: 'CHECK_ERROR', payload: error });
       toast({
         variant: 'destructive',
-        title: 'ডকুমেন্ট পরীক্ষা করার সময় ত্রুটি',
+        title: 'সার্ভার থেকে পরামর্শ আনতে ব্যর্থ',
         description: error,
       });
     }
