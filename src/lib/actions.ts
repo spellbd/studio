@@ -14,6 +14,7 @@ export async function getSuggestionsAction(
   text: string,
   isOnline: boolean,
   apiKey: string | null,
+  dictionary: string[] = [], // Receive the dictionary
 ): Promise<AnalysisResults> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1500));
@@ -30,13 +31,16 @@ export async function getSuggestionsAction(
       if (error instanceof Error && (error.message.includes('API key not valid') || error.message.includes('invalid'))) {
         throw new Error('আপনার প্রদান করা Gemini API কী সঠিক নয়। অনুগ্রহ করে আবার চেষ্টা করুন।');
       }
-      const errorMessage = error instanceof Error ? error.message : "একটি অজানা ত্রুটি ঘটেছে।";
-      throw new Error(errorMessage);
+      throw error; // Re-throw the original error for better debugging
     }
   } else {
-    // Offline mode
+    // Offline mode: Filter mock errors against the user's dictionary
+    const filteredSpellingErrors = mockSpellingErrors.filter(
+        (error) => !dictionary.includes(error.originalWord)
+    );
+
     return {
-      spellingErrors: mockSpellingErrors,
+      spellingErrors: filteredSpellingErrors,
       formattingSuggestions: mockFormattingSuggestions,
       structuralSuggestions: mockStructuralSuggestions,
       toneSuggestions: [], // Tone suggestions are online-only
@@ -49,6 +53,9 @@ export async function reportCorrectionAction(
   correctedWord: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // In a real scenario, this would likely interact with the client-side DB
+    // via a server component or a dedicated API route.
+    // For this implementation, we assume the client-side DB is updated directly.
     await improveOfflineNgramModel({ originalWord, correctedWord });
     console.log(`Reported correction: ${originalWord} -> ${correctedWord}`);
     return { success: true, message: 'ধন্যবাদ! আপনার মতামত সংরক্ষিত হয়েছে।' };

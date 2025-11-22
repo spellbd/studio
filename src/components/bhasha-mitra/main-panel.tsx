@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Logo } from '../logo';
 import { DictionaryManagementDialog } from './dictionary-management-dialog';
+import { openDB, getDictionary, addWords, addWord } from '@/lib/db';
 
 
 // Define the Office global object to avoid TypeScript errors.
@@ -128,31 +129,45 @@ export function MainPanel() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('geminiApiKey');
-    if (savedKey) {
-      dispatch({ type: 'SET_API_KEY', payload: savedKey });
-    }
-
-    const savedDictionary = localStorage.getItem('localDictionary');
-    if (savedDictionary) {
-      dispatch({ type: 'SET_DICTIONARY', payload: JSON.parse(savedDictionary) });
-    }
-
-    const initializeOffice = () => {
-        if (typeof Office !== 'undefined' && typeof Word !== 'undefined') {
-            Office.onReady((info: any) => {
-                if (info.host === Office.HostType.Word) {
-                    getDocumentText();
-                }
-            });
-        } else {
-            console.warn("Office.js is not loaded. Running in web mode with mock data.");
-            setText(fallbackText);
+    async function initializeApp() {
+        // Load API key from localStorage
+        const savedKey = localStorage.getItem('geminiApiKey');
+        if (savedKey) {
+            dispatch({ type: 'SET_API_KEY', payload: savedKey });
         }
-    };
-    
-    initializeOffice();
-  }, []);
+
+        // Initialize and load dictionary from IndexedDB
+        try {
+            await openDB();
+            const words = await getDictionary();
+            dispatch({ type: 'SET_DICTIONARY', payload: words });
+        } catch (error) {
+            console.error("Failed to initialize IndexedDB:", error);
+            toast({
+                variant: 'destructive',
+                title: 'ডেটাবেস ত্রুটি',
+                description: 'আপনার ব্যক্তিগত অভিধান লোড করা যায়নি।',
+            });
+        }
+        
+        // Initialize Office Add-in context
+        const initializeOffice = () => {
+            if (typeof Office !== 'undefined' && typeof Word !== 'undefined') {
+                Office.onReady((info: any) => {
+                    if (info.host === Office.HostType.Word) {
+                        getDocumentText();
+                    }
+                });
+            } else {
+                console.warn("Office.js is not loaded. Running in web mode with mock data.");
+                setText(fallbackText);
+            }
+        };
+        initializeOffice();
+    }
+
+    initializeApp();
+  }, [toast]);
 
   const getDocumentText = async () => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
@@ -206,7 +221,7 @@ export function MainPanel() {
 
     dispatch({ type: 'CHECK_START', isOnline: state.isOnline });
     try {
-      const results = await getSuggestionsAction(currentText, state.isOnline, apiKey);
+      const results = await getSuggestionsAction(currentText, state.isOnline, apiKey, state.dictionary);
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
        if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0) {
         toast({
@@ -242,13 +257,15 @@ export function MainPanel() {
       toast({ title: 'API কী মুছে ফেলা হয়েছে', variant: 'destructive' });
     }
   };
+  
+  const updateDictionaryState = (newWords: string[]) => {
+      const newFullDictionary = [...new Set([...state.dictionary, ...newWords])];
+      dispatch({ type: 'SET_DICTIONARY', payload: newFullDictionary });
+  }
 
-  const updateDictionary = (newWords: string[]) => {
-    const newDictionary = [...new Set([...state.dictionary, ...newWords])];
-    localStorage.setItem('localDictionary', JSON.stringify(newDictionary));
+  const handleDictionaryUpdate = (newDictionary: string[]) => {
     dispatch({ type: 'SET_DICTIONARY', payload: newDictionary });
   };
-
 
   const handleReplace = async (original: string, replacement: string, associatedError: SpellingError | ToneSuggestion | StructuralSuggestion | FormattingSuggestion) => {
     if (typeof Word === 'undefined' || typeof Office === 'undefined') {
@@ -316,12 +333,18 @@ export function MainPanel() {
     }
   };
 
-  const handleSpellingCorrection = (error: SpellingError, replacement: string) => {
-    handleReplace(error.originalWord, replacement, error);
-    updateDictionary([replacement]);
-    toast({
-        title: 'অভিধান আপডেট হয়েছে',
-    });
+  const handleSpellingCorrection = async (error: SpellingError, replacement: string) => {
+    await handleReplace(error.originalWord, replacement, error);
+    try {
+        await addWord(replacement);
+        updateDictionaryState([replacement]);
+        toast({
+            title: 'অভিধান আপডেট হয়েছে',
+            description: `"${replacement}" শব্দটি আপনার ব্যক্তিগত অভিধানে যোগ করা হয়েছে।`,
+        });
+    } catch (e) {
+        console.error("Failed to add corrected word to DB", e);
+    }
   };
 
   const handleIgnoreSpelling = (id: string) => dispatch({ type: 'DISMISS_SPELLING', payload: id });
@@ -347,27 +370,27 @@ export function MainPanel() {
   };
   
   const handleLearn = async (word: string) => {
-    // Add the word to the dictionary
-    updateDictionary([word]);
+    try {
+        await addWord(word);
+        updateDictionaryState([word]);
 
-    // Dismiss the suggestion card for the learned word immediately
-    const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === word);
-    if (errorToDismiss) {
-      handleIgnoreSpelling(errorToDismiss.id);
+        // Dismiss the suggestion card for the learned word immediately
+        const errorToDismiss = state.results?.spellingErrors.find(e => e.originalWord === word);
+        if (errorToDismiss) {
+          handleIgnoreSpelling(errorToDismiss.id);
+        }
+
+        toast({
+          title: 'শব্দটি অভিধানে যোগ করা হয়েছে',
+        });
+    } catch (error) {
+        console.error("Failed to learn word", error);
+        toast({
+            variant: 'destructive',
+            title: 'ত্রুটি',
+            description: 'অভিধানে শব্দটি যোগ করা যায়নি।',
+        });
     }
-
-    // Show toast after UI update
-    toast({
-      title: 'শব্দটি অভিধানে যোগ করা হয়েছে',
-    });
-  };
-
-  const handleDictionaryUpdate = (newDictionary: string[]) => {
-    localStorage.setItem('localDictionary', JSON.stringify(newDictionary));
-    dispatch({ type: 'SET_DICTIONARY', payload: newDictionary });
-    toast({
-        title: 'অভিধান আপডেট হয়েছে',
-    });
   };
 
   const renderContent = () => {

@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Trash2 } from 'lucide-react';
+import { removeWord } from '@/lib/db';
+import { useToast } from '@/hooks/use-toast';
 
 interface DictionaryManagementDialogProps {
   isOpen: boolean;
@@ -28,10 +30,25 @@ export function DictionaryManagementDialog({
   onDictionaryUpdate,
 }: DictionaryManagementDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
-  const handleRemoveWord = (wordToRemove: string) => {
-    const newDictionary = dictionary.filter((word) => word !== wordToRemove);
-    onDictionaryUpdate(newDictionary);
+  const handleRemoveWord = async (wordToRemove: string) => {
+    try {
+        await removeWord(wordToRemove);
+        const newDictionary = dictionary.filter((word) => word !== wordToRemove);
+        onDictionaryUpdate(newDictionary);
+        toast({
+            title: 'শব্দটি মুছে ফেলা হয়েছে',
+            description: `"${wordToRemove}" শব্দটি আপনার ব্যক্তিগত অভিধান থেকে মুছে ফেলা হয়েছে।`,
+        });
+    } catch (error) {
+        console.error("Failed to remove word from DB", error);
+        toast({
+            variant: 'destructive',
+            title: 'ত্রুটি',
+            description: 'অভিধান থেকে শব্দটি মুছে ফেলা যায়নি।',
+        });
+    }
   };
 
   const filteredDictionary = dictionary.filter((word) =>
