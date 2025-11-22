@@ -221,7 +221,7 @@ export function MainPanel() {
 
     dispatch({ type: 'CHECK_START', isOnline: state.isOnline });
     try {
-      const results = await getSuggestionsAction(currentText, state.isOnline, apiKey, state.dictionary);
+      const results = await getSuggestionsAction(currentText, state.isOnline, apiKey);
       dispatch({ type: 'CHECK_SUCCESS', payload: results });
        if (results.spellingErrors.length === 0 && results.formattingSuggestions.length === 0 && results.structuralSuggestions.length === 0 && results.toneSuggestions.length === 0) {
         toast({
@@ -511,7 +511,7 @@ export function MainPanel() {
                 placeholder="আপনার Word ডকুমেন্টের বিষয়বস্তু এখানে প্রদর্শিত হবে..."
                 className="w-full h-32 resize-none text-base bg-muted/40"
                 value={text}
-                readOnly // Make the textarea read-only as it reflects the doc content
+                readOnly
             />
             <div className="grid grid-cols-1 gap-2 mt-3">
                 <Button
